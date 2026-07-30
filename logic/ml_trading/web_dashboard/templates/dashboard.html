@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚀 ETH Trading Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background: #0a0a1a; 
+            color: #e0e0e0; 
+            padding: 20px;
+        }
+        .container { max-width: 1400px; margin: auto; }
+        
+        .header { 
+            background: linear-gradient(135deg, #1a1a3e, #16213e);
+            padding: 20px 30px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            border: 1px solid #2a2a5e;
+        }
+        .header h1 { 
+            color: #4ecca3; 
+            font-size: 28px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .header .subtitle { 
+            color: #8888aa; 
+            font-size: 14px;
+            margin-top: 5px;
+        }
+        
+        .row { display: flex; flex-wrap: wrap; gap: 20px; margin-bottom: 20px; }
+        .col { flex: 1; min-width: 200px; }
+        .card {
+            background: #1a1a3e;
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid #2a2a5e;
+            transition: all 0.3s;
+        }
+        .card:hover { border-color: #4ecca3; transform: translateY(-2px); }
+        .card h3 { 
+            color: #8888aa; 
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+        .card .metric { 
+            font-size: 28px; 
+            font-weight: bold;
+            color: #ffffff;
+        }
+        .card .metric.green { color: #4ecca3; }
+        .card .metric.red { color: #ff6b6b; }
+        .card .metric.orange { color: #ffa94d; }
+        .card .sub-metric { 
+            font-size: 14px; 
+            color: #8888aa;
+            margin-top: 5px;
+        }
+        
+        .chart-container {
+            background: #1a1a3e;
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid #2a2a5e;
+            margin-bottom: 20px;
+        }
+        .chart-container h3 {
+            color: #8888aa;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+        
+        .table-container {
+            background: #1a1a3e;
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid #2a2a5e;
+            overflow-x: auto;
+        }
+        table { width: 100%; border-collapse: collapse; }
+        th { 
+            color: #8888aa; 
+            text-align: left;
+            padding: 10px;
+            border-bottom: 1px solid #2a2a5e;
+            font-size: 12px;
+            text-transform: uppercase;
+        }
+        td { 
+            padding: 10px;
+            border-bottom: 1px solid #1a1a3e;
+            font-size: 14px;
+        }
+        .badge {
+            padding: 3px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .badge.buy { background: #4ecca3; color: #0a0a1a; }
+        .badge.sell { background: #ff6b6b; color: #0a0a1a; }
+        .badge.hold { background: #ffa94d; color: #0a0a1a; }
+        
+        .refresh-btn {
+            background: #4ecca3;
+            color: #0a0a1a;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .refresh-btn:hover { opacity: 0.8; }
+        
+        .status-dot {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        .status-dot.online { background: #4ecca3; }
+        .status-dot.offline { background: #ff6b6b; }
+        
+        @media (max-width: 768px) {
+            .col { min-width: 100%; }
+            .header h1 { font-size: 20px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 ETH Trading Dashboard</h1>
+            <div class="subtitle">
+                <span class="status-dot online" id="statusDot"></span>
+                <span id="statusText">Online</span>
+                <span style="margin-left: 20px;" id="lastUpdate">Last update: --</span>
+                <button class="refresh-btn" onclick="refreshData()" style="float: right;">🔄 Refresh</button>
+            </div>
+        </div>
+
+        <div class="row" id="metrics">
+            <div class="col">
+                <div class="card">
+                    <h3>💰 Price</h3>
+                    <div class="metric green" id="price">--</div>
+                    <div class="sub-metric" id="priceChange">24h change: --</div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card">
+                    <h3>📈 Signal</h3>
+                    <div class="metric" id="signal">--</div>
+                    <div class="sub-metric" id="confidence">Confidence: --</div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card">
+                    <h3>📊 Total Trades</h3>
+                    <div class="metric orange" id="trades">--</div>
+                    <div class="sub-metric" id="winRate">Win rate: --</div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card">
+                    <h3>💰 Total P&L</h3>
+                    <div class="metric" id="pnl">--</div>
+                    <div class="sub-metric" id="avgPnl">Avg P&L: --</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="chart-container">
+            <h3>📈 Price Chart</h3>
+            <canvas id="priceChart" height="250"></canvas>
+        </div>
+
+        <div class="chart-container">
+            <h3>📊 Recent Signals</h3>
+            <div id="signalsTable" style="overflow-x: auto;"></div>
+        </div>
+
+        <div class="chart-container">
+            <h3>💰 Recent Trades</h3>
+            <div id="tradesTable" style="overflow-x: auto;"></div>
+        </div>
+    </div>
+
+    <script>
+        let priceChart = null;
+
+        function getSignalBadge(signal) {
+            const classes = {
+                'BUY': 'badge buy',
+                'SELL': 'badge sell',
+                'HOLD': 'badge hold'
+            };
+            return `<span class="${classes[signal] || 'badge hold'}">${signal}</span>`;
+        }
+
+        function formatDate(dateStr) {
+            if (!dateStr) return '--';
+            const d = new Date(dateStr);
+            return d.toLocaleString();
+        }
+
+        function updateMetrics(data) {
+            document.getElementById('price').textContent = data.price ? `$${data.price.toFixed(2)}` : '--';
+            
+            const signalEl = document.getElementById('signal');
+            signalEl.innerHTML = data.signal ? getSignalBadge(data.signal) : '--';
+            
+            document.getElementById('confidence').textContent = data.confidence ? `Confidence: ${(data.confidence * 100).toFixed(1)}%` : 'Confidence: --';
+            document.getElementById('trades').textContent = data.total_trades || 0;
+        }
+
+        function updatePerformance(data) {
+            const pnlEl = document.getElementById('pnl');
+            const pnl = data.total_pnl || 0;
+            pnlEl.textContent = `$${pnl.toFixed(2)}`;
+            pnlEl.className = 'metric ' + (pnl >= 0 ? 'green' : 'red');
+            
+            document.getElementById('winRate').textContent = data.win_rate ? `Win rate: ${data.win_rate.toFixed(1)}%` : 'Win rate: --';
+            document.getElementById('avgPnl').textContent = data.avg_pnl ? `Avg P&L: $${data.avg_pnl.toFixed(2)}` : 'Avg P&L: --';
+        }
+
+        function updatePriceChart(data) {
+            if (priceChart) {
+                priceChart.destroy();
+            }
+
+            const ctx = document.getElementById('priceChart').getContext('2d');
+            priceChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data.dates || [],
+                    datasets: [{
+                        label: 'ETH Price (USD)',
+                        data: data.prices || [],
+                        borderColor: '#4ecca3',
+                        backgroundColor: 'rgba(78, 204, 163, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: { color: '#8888aa' }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { color: '#1a1a3e' },
+                            ticks: { color: '#8888aa', maxTicksLimit: 20 }
+                        },
+                        y: {
+                            grid: { color: '#1a1a3e' },
+                            ticks: { color: '#8888aa' }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateSignals(signals) {
+            const container = document.getElementById('signalsTable');
+            if (!signals || signals.length === 0) {
+                container.innerHTML = '<p style="color: #8888aa; padding: 20px;">No signals found</p>';
+                return;
+            }
+
+            let html = `<table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Time</th>
+                        <th>Signal</th>
+                        <th>Price</th>
+                        <th>Confidence</th>
+                    </tr>
+                </thead>
+                <tbody>`;
+            
+            signals.slice(0, 10).forEach(s => {
+                html += `<tr>
+                    <td>${s.id}</td>
+                    <td>${formatDate(s.timestamp)}</td>
+                    <td>${getSignalBadge(s.signal_type)}</td>
+                    <td>$${s.current_price ? s.current_price.toFixed(2) : '--'}</td>
+                    <td>${s.confidence ? (s.confidence * 100).toFixed(1) + '%' : '--'}</td>
+                </tr>`;
+            });
+            
+            html += `</tbody></table>`;
+            container.innerHTML = html;
+        }
+
+        function updateTrades(trades) {
+            const container = document.getElementById('tradesTable');
+            if (!trades || trades.length === 0) {
+                container.innerHTML = '<p style="color: #8888aa; padding: 20px;">No trades found</p>';
+                return;
+            }
+
+            let html = `<table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Time</th>
+                        <th>Type</th>
+                        <th>Price</th>
+                        <th>Quantity</th>
+                        <th>P&L</th>
+                    </tr>
+                </thead>
+                <tbody>`;
+            
+            trades.slice(0, 10).forEach(t => {
+                const pnl = t.pnl || 0;
+                const pnlColor = pnl >= 0 ? '#4ecca3' : '#ff6b6b';
+                html += `<tr>
+                    <td>${t.id}</td>
+                    <td>${formatDate(t.timestamp)}</td>
+                    <td>${getSignalBadge(t.type)}</td>
+                    <td>$${t.price ? t.price.toFixed(2) : '--'}</td>
+                    <td>${t.quantity || '--'}</td>
+                    <td style="color: ${pnlColor}">$${pnl.toFixed(2)}</td>
+                </tr>`;
+            });
+            
+            html += `</tbody></table>`;
+            container.innerHTML = html;
+        }
+
+        function refreshData() {
+            document.getElementById('lastUpdate').textContent = `Last update: ${new Date().toLocaleTimeString()}`;
+
+            fetch('/api/latest')
+                .then(r => r.json())
+                .then(data => {
+                    if (data.error) {
+                        console.error('Error:', data.error);
+                        return;
+                    }
+                    updateMetrics(data);
+                })
+                .catch(err => console.error('Error fetching latest:', err));
+
+            fetch('/api/performance')
+                .then(r => r.json())
+                .then(data => {
+                    if (data.error) {
+                        console.error('Error:', data.error);
+                        return;
+                    }
+                    updatePerformance(data);
+                })
+                .catch(err => console.error('Error fetching performance:', err));
+
+            fetch('/api/price')
+                .then(r => r.json())
+                .then(data => {
+                    if (data.error) {
+                        console.error('Error:', data.error);
+                        return;
+                    }
+                    updatePriceChart(data);
+                })
+                .catch(err => console.error('Error fetching price:', err));
+
+            fetch('/api/signals')
+                .then(r => r.json())
+                .then(data => {
+                    if (data.error) {
+                        console.error('Error:', data.error);
+                        return;
+                    }
+                    updateSignals(data);
+                })
+                .catch(err => console.error('Error fetching signals:', err));
+
+            fetch('/api/trades')
+                .then(r => r.json())
+                .then(data => {
+                    if (data.error) {
+                        console.error('Error:', data.error);
+                        return;
+                    }
+                    updateTrades(data);
+                })
+                .catch(err => console.error('Error fetching trades:', err));
+        }
+
+        refreshData();
+        setInterval(refreshData, 30000);
+    </script>
+</body>
+</html>
