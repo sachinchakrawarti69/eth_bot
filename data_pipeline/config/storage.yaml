@@ -1,0 +1,359 @@
+# ============================================================
+# ETH Bot - Storage Configuration
+# ============================================================
+
+storage:
+
+  root_directory: "./storage"
+
+  create_directories_on_startup: true
+
+  overwrite_existing: false
+
+  auto_cleanup: true
+
+  compression: true
+
+
+# ============================================================
+# Raw Data Storage
+# ============================================================
+
+raw:
+
+  enabled: true
+
+  path: "./storage/raw"
+
+  format: "parquet"
+
+  partition_by:
+
+    - year
+    - month
+    - day
+    - symbol
+
+  compression: "snappy"
+
+  retention_days: 365
+
+  backup_enabled: true
+
+
+# ============================================================
+# Processed Data
+# ============================================================
+
+processed:
+
+  enabled: true
+
+  path: "./storage/processed"
+
+  format: "parquet"
+
+  partition_by:
+
+    - year
+    - month
+
+  compression: "snappy"
+
+  retention_days: 365
+
+
+# ============================================================
+# Feature Store
+# ============================================================
+
+features:
+
+  enabled: true
+
+  path: "./storage/features"
+
+  format: "parquet"
+
+  versioning: true
+
+  overwrite: false
+
+  compression: "snappy"
+
+  retention_days: 365
+
+
+# ============================================================
+# Training Datasets
+# ============================================================
+
+datasets:
+
+  enabled: true
+
+  path: "./storage/datasets"
+
+  format: "parquet"
+
+  save_training: true
+
+  save_validation: true
+
+  save_test: true
+
+  versioning: true
+
+  compression: "snappy"
+
+
+# ============================================================
+# Technical Indicators
+# ============================================================
+
+indicators:
+
+  enabled: true
+
+  path: "./storage/indicators"
+
+  format: "parquet"
+
+  overwrite_existing: false
+
+  versioning: true
+
+
+# ============================================================
+# AI Model Predictions
+# ============================================================
+
+predictions:
+
+  enabled: true
+
+  path: "./storage/predictions"
+
+  format: "parquet"
+
+  retention_days: 180
+
+  versioning: true
+
+
+# ============================================================
+# Backtesting Results
+# ============================================================
+
+backtesting:
+
+  enabled: true
+
+  path: "./storage/backtesting"
+
+  save_trades: true
+
+  save_equity_curve: true
+
+  save_statistics: true
+
+  retention_days: 365
+
+
+# ============================================================
+# Reports
+# ============================================================
+
+reports:
+
+  enabled: true
+
+  path: "./storage/reports"
+
+  format: "pdf"
+
+  archive_reports: true
+
+  retention_days: 365
+
+
+# ============================================================
+# Logs
+# ============================================================
+
+logs:
+
+  enabled: true
+
+  path: "./storage/logs"
+
+  max_file_size_mb: 100
+
+  backup_files: 10
+
+  retention_days: 90
+
+
+# ============================================================
+# Cache
+# ============================================================
+
+cache:
+
+  enabled: true
+
+  path: "./storage/cache"
+
+  clear_on_startup: false
+
+  max_size_mb: 1024
+
+  ttl_minutes: 60
+
+
+# ============================================================
+# Archive
+# ============================================================
+
+archive:
+
+  enabled: true
+
+  path: "./storage/archive"
+
+  compression: "zip"
+
+  move_after_days: 30
+
+  delete_after_days: 730
+
+
+# ============================================================
+# Backup
+# ============================================================
+
+backup:
+
+  enabled: true
+
+  path: "./storage/backups"
+
+  schedule: "daily"
+
+  keep_daily: 30
+
+  keep_weekly: 12
+
+  keep_monthly: 12
+
+  compress: true
+
+  verify_backup: true
+
+
+# ============================================================
+# Database Storage
+# ============================================================
+
+database:
+
+  enabled: true
+
+  type: "postgresql"
+
+  schema: "market_data"
+
+  auto_create_tables: true
+
+  auto_migrate: false
+
+  connection_pool_size: 20
+
+  connection_timeout_seconds: 30
+
+
+# ============================================================
+# Object Storage
+# ============================================================
+
+object_storage:
+
+  enabled: false
+
+  provider: "minio"
+
+  bucket: "eth-bot"
+
+  region: "local"
+
+  endpoint: ""
+
+  access_key: ""
+
+  secret_key: ""
+
+
+# ============================================================
+# File Naming
+# ============================================================
+
+naming:
+
+  timestamp_format: "%Y%m%d_%H%M%S"
+
+  include_symbol: true
+
+  include_timeframe: true
+
+  include_version: true
+
+  lowercase_names: true
+
+
+# ============================================================
+# Performance
+# ============================================================
+
+performance:
+
+  write_batch_size: 10000
+
+  read_batch_size: 50000
+
+  async_writes: true
+
+  async_reads: true
+
+  memory_cache: true
+
+  preload_metadata: true
+
+
+# ============================================================
+# Security
+# ============================================================
+
+security:
+
+  checksum_validation: true
+
+  verify_file_integrity: true
+
+  encrypt_backups: false
+
+  read_only_archive: true
+
+
+# ============================================================
+# Development
+# ============================================================
+
+development:
+
+  save_sample_files: false
+
+  debug_storage: false
+
+  verbose_logging: false
+
+  validate_paths_on_startup: true

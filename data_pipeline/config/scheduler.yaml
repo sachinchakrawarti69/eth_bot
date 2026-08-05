@@ -1,0 +1,400 @@
+# ============================================================
+# ETH Bot - Scheduler Configuration
+# ============================================================
+
+scheduler:
+
+  enabled: true
+
+  timezone: "UTC"
+
+  auto_start: true
+
+  graceful_shutdown: true
+
+  max_concurrent_jobs: 20
+
+  retry_failed_jobs: true
+
+  retry_attempts: 3
+
+  retry_delay_seconds: 10
+
+
+# ============================================================
+# Startup Jobs
+# ============================================================
+
+startup:
+
+  run_health_check: true
+
+  load_configuration: true
+
+  initialize_database: true
+
+  initialize_storage: true
+
+  initialize_feature_store: true
+
+  synchronize_exchange_time: true
+
+  load_latest_state: true
+
+  backfill_missing_data: true
+
+  start_collectors: true
+
+
+# ============================================================
+# Real-Time Collection Jobs
+# ============================================================
+
+realtime:
+
+  websocket:
+
+    enabled: true
+
+    interval_seconds: 1
+
+  trades:
+
+    enabled: true
+
+    interval_seconds: 1
+
+  orderbook:
+
+    enabled: true
+
+    interval_seconds: 1
+
+  mark_price:
+
+    enabled: true
+
+    interval_seconds: 1
+
+  index_price:
+
+    enabled: true
+
+    interval_seconds: 1
+
+  liquidations:
+
+    enabled: true
+
+    interval_seconds: 2
+
+
+# ============================================================
+# Periodic Collection Jobs
+# ============================================================
+
+collection:
+
+  ohlcv:
+
+    enabled: true
+
+    interval: "1m"
+
+  funding_rate:
+
+    enabled: true
+
+    interval: "8h"
+
+  open_interest:
+
+    enabled: true
+
+    interval: "5m"
+
+  long_short_ratio:
+
+    enabled: true
+
+    interval: "5m"
+
+  option_chain:
+
+    enabled: true
+
+    interval: "15m"
+
+  greeks:
+
+    enabled: true
+
+    interval: "15m"
+
+  implied_volatility:
+
+    enabled: true
+
+    interval: "15m"
+
+  fear_greed:
+
+    enabled: true
+
+    interval: "1h"
+
+  news:
+
+    enabled: true
+
+    interval: "5m"
+
+  whales:
+
+    enabled: true
+
+    interval: "1m"
+
+  onchain:
+
+    enabled: true
+
+    interval: "10m"
+
+
+# ============================================================
+# Validation Jobs
+# ============================================================
+
+validation:
+
+  schema_validation:
+
+    enabled: true
+
+    interval: "5m"
+
+  missing_data_check:
+
+    enabled: true
+
+    interval: "10m"
+
+  duplicate_check:
+
+    enabled: true
+
+    interval: "15m"
+
+  anomaly_detection:
+
+    enabled: true
+
+    interval: "30m"
+
+  quality_report:
+
+    enabled: true
+
+    interval: "1h"
+
+
+# ============================================================
+# ETL Jobs
+# ============================================================
+
+etl:
+
+  extract:
+
+    enabled: true
+
+    interval: "5m"
+
+  transform:
+
+    enabled: true
+
+    interval: "5m"
+
+  load:
+
+    enabled: true
+
+    interval: "5m"
+
+  archive:
+
+    enabled: true
+
+    interval: "1d"
+
+
+# ============================================================
+# Technical Indicators
+# ============================================================
+
+technical_indicators:
+
+  enabled: true
+
+  interval: "5m"
+
+  overwrite_existing: false
+
+
+# ============================================================
+# Feature Engineering
+# ============================================================
+
+feature_engineering:
+
+  enabled: true
+
+  interval: "5m"
+
+  save_features: true
+
+
+# ============================================================
+# Dataset Builder
+# ============================================================
+
+dataset_builder:
+
+  enabled: true
+
+  interval: "1h"
+
+  build_training_dataset: true
+
+  build_validation_dataset: true
+
+  build_test_dataset: true
+
+
+# ============================================================
+# Storage Maintenance
+# ============================================================
+
+storage:
+
+  cleanup_temp:
+
+    enabled: true
+
+    interval: "1d"
+
+  compress_archives:
+
+    enabled: true
+
+    interval: "1d"
+
+  backup_database:
+
+    enabled: true
+
+    interval: "1d"
+
+  optimize_storage:
+
+    enabled: true
+
+    interval: "7d"
+
+
+# ============================================================
+# Monitoring
+# ============================================================
+
+monitoring:
+
+  health_check:
+
+    enabled: true
+
+    interval: "1m"
+
+  performance_metrics:
+
+    enabled: true
+
+    interval: "5m"
+
+  data_freshness:
+
+    enabled: true
+
+    interval: "1m"
+
+  pipeline_status:
+
+    enabled: true
+
+    interval: "30s"
+
+  latency_monitor:
+
+    enabled: true
+
+    interval: "1m"
+
+
+# ============================================================
+# Logging
+# ============================================================
+
+logging:
+
+  rotate_logs:
+
+    enabled: true
+
+    interval: "1d"
+
+  cleanup_logs:
+
+    enabled: true
+
+    interval: "30d"
+
+
+# ============================================================
+# Reports
+# ============================================================
+
+reports:
+
+  daily_report:
+
+    enabled: true
+
+    schedule: "00:00"
+
+  weekly_report:
+
+    enabled: true
+
+    schedule: "Sunday 00:00"
+
+  monthly_report:
+
+    enabled: true
+
+    schedule: "1st 00:00"
+
+
+# ============================================================
+# Development
+# ============================================================
+
+development:
+
+  run_dummy_jobs: false
+
+  simulate_pipeline: false
+
+  verbose_scheduler: false
+
+  log_execution_time: true

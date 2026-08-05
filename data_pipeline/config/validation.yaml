@@ -1,0 +1,371 @@
+# ============================================================
+# ETH Bot - Data Validation Configuration
+# ============================================================
+
+validation:
+
+  enabled: true
+
+  stop_pipeline_on_failure: false
+
+  strict_mode: false
+
+  generate_validation_report: true
+
+  save_failed_records: true
+
+  failed_records_path: "./storage/validation/failed"
+
+  max_validation_errors: 1000
+
+
+# ============================================================
+# Schema Validation
+# ============================================================
+
+schema:
+
+  enabled: true
+
+  validate_columns: true
+
+  validate_data_types: true
+
+  validate_required_fields: true
+
+  validate_nullable_fields: true
+
+  validate_column_order: false
+
+  auto_fix_schema: false
+
+
+# ============================================================
+# Timestamp Validation
+# ============================================================
+
+timestamp:
+
+  enabled: true
+
+  timezone: "UTC"
+
+  check_future_timestamp: true
+
+  check_duplicate_timestamp: true
+
+  check_missing_timestamp: true
+
+  check_order: true
+
+  max_clock_drift_seconds: 5
+
+
+# ============================================================
+# Missing Data Validation
+# ============================================================
+
+missing_data:
+
+  enabled: true
+
+  detect_missing_rows: true
+
+  detect_missing_values: true
+
+  max_missing_percentage: 0.5
+
+  auto_fill: false
+
+  fill_method: "none"
+
+
+# ============================================================
+# Duplicate Validation
+# ============================================================
+
+duplicates:
+
+  enabled: true
+
+  detect_duplicate_rows: true
+
+  detect_duplicate_timestamp: true
+
+  remove_duplicates: false
+
+  keep: "first"
+
+
+# ============================================================
+# OHLCV Validation
+# ============================================================
+
+ohlcv:
+
+  enabled: true
+
+  validate_open: true
+
+  validate_high: true
+
+  validate_low: true
+
+  validate_close: true
+
+  validate_volume: true
+
+  validate_price_range: true
+
+  validate_negative_volume: true
+
+  validate_zero_volume: false
+
+  check_high_ge_open: true
+
+  check_high_ge_close: true
+
+  check_low_le_open: true
+
+  check_low_le_close: true
+
+  check_high_ge_low: true
+
+
+# ============================================================
+# Order Book Validation
+# ============================================================
+
+orderbook:
+
+  enabled: true
+
+  validate_best_bid: true
+
+  validate_best_ask: true
+
+  validate_spread: true
+
+  validate_depth: true
+
+  max_allowed_spread_percent: 5
+
+
+# ============================================================
+# Funding Rate Validation
+# ============================================================
+
+funding_rate:
+
+  enabled: true
+
+  check_missing: true
+
+  validate_numeric: true
+
+  min_value: -1.0
+
+  max_value: 1.0
+
+
+# ============================================================
+# Open Interest Validation
+# ============================================================
+
+open_interest:
+
+  enabled: true
+
+  validate_numeric: true
+
+  allow_zero: true
+
+  allow_negative: false
+
+
+# ============================================================
+# Liquidation Validation
+# ============================================================
+
+liquidations:
+
+  enabled: true
+
+  validate_side: true
+
+  validate_quantity: true
+
+  validate_price: true
+
+  allow_zero_quantity: false
+
+
+# ============================================================
+# Technical Indicator Validation
+# ============================================================
+
+technical_indicators:
+
+  enabled: true
+
+  check_nan: true
+
+  check_infinite: true
+
+  validate_output_range: true
+
+
+# ============================================================
+# Feature Validation
+# ============================================================
+
+features:
+
+  enabled: true
+
+  check_nan: true
+
+  check_infinite: true
+
+  check_constant_columns: true
+
+  check_duplicate_features: true
+
+  check_feature_count: true
+
+  minimum_feature_count: 10
+
+  maximum_feature_count: 1000
+
+
+# ============================================================
+# Dataset Validation
+# ============================================================
+
+datasets:
+
+  enabled: true
+
+  validate_labels: true
+
+  validate_feature_alignment: true
+
+  validate_window_size: true
+
+  validate_sequence_length: true
+
+  validate_train_test_split: true
+
+  check_data_leakage: true
+
+  minimum_samples: 1000
+
+
+# ============================================================
+# Statistical Validation
+# ============================================================
+
+statistics:
+
+  enabled: true
+
+  detect_outliers: true
+
+  detect_distribution_shift: true
+
+  detect_data_drift: true
+
+  calculate_summary_statistics: true
+
+  z_score_threshold: 3.0
+
+
+# ============================================================
+# Quality Score
+# ============================================================
+
+quality:
+
+  enabled: true
+
+  minimum_quality_score: 95
+
+  score_weights:
+
+    schema: 20
+
+    timestamps: 20
+
+    missing_data: 20
+
+    duplicates: 10
+
+    statistics: 15
+
+    feature_quality: 15
+
+
+# ============================================================
+# Alerts
+# ============================================================
+
+alerts:
+
+  enabled: true
+
+  alert_on_schema_failure: true
+
+  alert_on_data_drift: true
+
+  alert_on_quality_failure: true
+
+  alert_on_missing_data: true
+
+  alert_on_duplicate_data: false
+
+
+# ============================================================
+# Logging
+# ============================================================
+
+logging:
+
+  enabled: true
+
+  level: "INFO"
+
+  save_validation_logs: true
+
+  save_summary_report: true
+
+  save_error_details: true
+
+
+# ============================================================
+# Performance
+# ============================================================
+
+performance:
+
+  parallel_validation: true
+
+  worker_threads: 8
+
+  batch_size: 10000
+
+  cache_validation_results: true
+
+
+# ============================================================
+# Development
+# ============================================================
+
+development:
+
+  debug_validation: false
+
+  verbose_output: false
+
+  save_sample_failures: true
+
+  dry_run: false
