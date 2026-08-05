@@ -1,0 +1,1 @@
+"""GRU-specific utility namespace."""

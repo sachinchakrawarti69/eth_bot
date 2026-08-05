@@ -1,0 +1,4 @@
+sequence_length: 60
+feature_count: 11
+units: 64
+num_heads: 4
