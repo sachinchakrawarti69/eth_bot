@@ -85,10 +85,7 @@ collectors/
 ├── __init__.py
 │
 ├── base/
-│   ├── base_collector.py
-│   ├── rest_collector.py
-│   ├── websocket_collector.py
-│   ├── scheduler.py
+
 │   ├── retry.py
 │   └── utils.py
 │
