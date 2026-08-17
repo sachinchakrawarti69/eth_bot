@@ -1,0 +1,16 @@
+@"
+requests
+pandas
+numpy
+python-dotenv
+schedule
+ccxt
+websocket-client
+ta
+scikit-learn
+torch
+matplotlib
+plotly
+jupyter
+pytest
+"@ | Out-File -FilePath requirements.txt -Encoding UTF8
