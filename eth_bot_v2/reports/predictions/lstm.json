@@ -1,0 +1,21 @@
+{
+  "model": "lstm",
+  "window": 30,
+  "features": [
+    "ret_1",
+    "ret_5",
+    "ret_20",
+    "vol_20",
+    "rsi_14",
+    "macd_hist",
+    "atr_14",
+    "sma_50",
+    "sma_200"
+  ],
+  "epochs_run": 17,
+  "best_epoch": 6,
+  "test_days": 294,
+  "rmse": 0.03197092683702453,
+  "mae": 0.02134064409375658,
+  "dir_accuracy": 0.5578231292517006
+}

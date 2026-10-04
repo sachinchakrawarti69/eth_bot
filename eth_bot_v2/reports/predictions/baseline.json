@@ -1,0 +1,15 @@
+{
+  "model": "baseline (tomorrow = today)",
+  "test_days": 250,
+  "test_start": "2026-01-25",
+  "test_end": "2026-10-01",
+  "price": {
+    "rmse": 69.52714308312406,
+    "mae": 46.41265060240964
+  },
+  "return": {
+    "rmse": 0.03292027745197181,
+    "mae": 0.021930686541874637,
+    "dir_accuracy": 0.52
+  }
+}

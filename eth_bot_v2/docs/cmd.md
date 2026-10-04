@@ -405,3 +405,8 @@ pip list
 ```cmd
 pip freeze > requirements.txt
 ```
+
+python database\show.py
+python database\show.py funding_rate
+python database\show.py fear_greed
+python -m scripts_python.update_market

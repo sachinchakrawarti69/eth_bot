@@ -1,0 +1,9 @@
+{
+  "action": "FLAT",
+  "reason": "no clear edge",
+  "price": 2687.23,
+  "entry": null,
+  "stop": null,
+  "target": null,
+  "conf": 0.25
+}

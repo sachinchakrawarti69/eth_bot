@@ -1,0 +1,9 @@
+{
+  "action": "FLAT",
+  "reason": "weak signal (1)",
+  "price": 2687.23,
+  "entry": 2687.23,
+  "stop": 2687.23,
+  "target": 2687.23,
+  "conf": 0.16666666666666666
+}
