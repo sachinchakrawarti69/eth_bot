@@ -8,3 +8,19 @@ python -m run
 
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
+
+
+
+
+python -m scripts_python.fetch_options --currency ETH
+
+
+python -m scripts_python.export_options --currency ETH
+
+
+python -m scripts_python.export_options --currency BTC
+
+python -m scripts_python.export_options --currency ETH,BTC
+
+
+python -m scripts_python.gui.take_trade
