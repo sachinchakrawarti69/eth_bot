@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ETH Bot · Trade Desk</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg:     #08080c;
+    --bg2:    #0e0e14;
+    --panel:  #12121a;
+    --panel2: #1a1a24;
+    --border: #23232e;
+    --border2:#2e2e3c;
+    --text:   #f0f0f5;
+    --dim:    #7a7a8a;
+    --dim2:   #5a5a68;
+    --green:  #00d97e;
+    --red:    #ff3b5c;
+    --blue:   #3b82f6;
+    --yellow: #fbbf24;
+    --purple: #a855f7;
+    --orange: #fb923c;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    background: var(--bg);
+    color: var(--text);
+    margin: 0;
+    padding: 0;
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 13px;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  .mono { font-family: 'JetBrains Mono', Consolas, monospace; }
+
+  /* grid background */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background-image:
+      linear-gradient(rgba(35,35,46,0.35) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(35,35,46,0.35) 1px, transparent 1px);
+    background-size: 40px 40px;
+    z-index: 0;
+  }
+
+  #app { position: relative; z-index: 1; }
+
+  /* scrollbars */
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-track { background: var(--bg2); }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: #3a3a4a; }
+
+  /* animations */
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50%      { opacity: 0.5; transform: scale(0.85); }
+  }
+  .live-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 8px var(--green);
+    animation: pulse-dot 1.6s infinite;
+    display: inline-block;
+  }
+
+  @keyframes slide-in {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .slide-in { animation: slide-in 0.35s cubic-bezier(0.16, 1, 0.3, 1); }
+
+  @keyframes glow-long {
+    0%, 100% { box-shadow: 0 0 24px rgba(0, 217, 126, 0.25); }
+    50%      { box-shadow: 0 0 40px rgba(0, 217, 126, 0.5); }
+  }
+  @keyframes glow-short {
+    0%, 100% { box-shadow: 0 0 24px rgba(255, 59, 92, 0.25); }
+    50%      { box-shadow: 0 0 40px rgba(255, 59, 92, 0.5); }
+  }
+  .glow-long  { animation: glow-long 3s ease-in-out infinite; }
+  .glow-short { animation: glow-short 3s ease-in-out infinite; }
+
+  @keyframes shimmer {
+    0%   { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+  .skeleton {
+    background: linear-gradient(90deg, var(--panel) 0%, var(--panel2) 50%, var(--panel) 100%);
+    background-size: 200% 100%;
+    animation: shimmer 1.6s ease-in-out infinite;
+  }
+
+  /* price tick flash */
+  @keyframes flash-green {
+    0%   { background: rgba(0, 217, 126, 0.28); }
+    100% { background: transparent; }
+  }
+  @keyframes flash-red {
+    0%   { background: rgba(255, 59, 92, 0.28); }
+    100% { background: transparent; }
+  }
+  .tick-up   { animation: flash-green 0.7s ease-out; }
+  .tick-down { animation: flash-red   0.7s ease-out; }
+
+  /* cards */
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    transition: border-color 0.2s, transform 0.15s;
+  }
+  .card:hover { border-color: var(--border2); }
+
+  /* buttons */
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 6px 14px;
+    border-radius: 8px;
+    border: 1px solid var(--border2);
+    background: var(--panel2);
+    color: var(--text);
+    font-size: 12px; font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+    user-select: none;
+  }
+  .btn:hover { background: var(--border); border-color: #3a3a4a; }
+  .btn:active { transform: scale(0.97); }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .btn-primary {
+    background: rgba(59, 130, 246, 0.15);
+    border-color: var(--blue);
+    color: #93c5fd;
+  }
+  .btn-primary:hover {
+    background: rgba(59, 130, 246, 0.28);
+    border-color: #60a5fa;
+  }
+
+  .btn-scan {
+    background: linear-gradient(135deg, rgba(0, 217, 126, 0.2), rgba(59, 130, 246, 0.2));
+    border-color: var(--green);
+    color: #6ee7b7;
+    font-weight: 600;
+  }
+  .btn-scan:hover {
+    background: linear-gradient(135deg, rgba(0, 217, 126, 0.32), rgba(59, 130, 246, 0.32));
+    border-color: #34d399;
+  }
+
+  /* setup card */
+  .setup-card {
+    position: relative;
+    padding: 12px 14px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--panel);
+    cursor: pointer;
+    transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+    overflow: hidden;
+  }
+  .setup-card::before {
+    content: "";
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: var(--dim);
+    transition: background 0.2s;
+  }
+  .setup-card.long::before  { background: var(--green); }
+  .setup-card.short::before { background: var(--red); }
+  .setup-card:hover {
+    background: var(--panel2);
+    border-color: var(--border2);
+    transform: translateX(2px);
+  }
+  .setup-card.active {
+    border-color: var(--blue);
+    background: rgba(59, 130, 246, 0.08);
+  }
+  .setup-card.active.long  { border-color: var(--green); background: rgba(0, 217, 126, 0.08); }
+  .setup-card.active.short { border-color: var(--red);   background: rgba(255, 59, 92, 0.08); }
+
+  /* metric row */
+  .metric {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 12px;
+  }
+  .metric:last-child { border-bottom: none; }
+  .metric-label { color: var(--dim); font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; }
+  .metric-value { font-family: 'JetBrains Mono', monospace; font-weight: 600; }
+
+  /* verdict */
+  .verdict {
+    padding: 26px 24px;
+    border-radius: 14px;
+    text-align: center;
+    font-size: 34px;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    position: relative;
+    overflow: hidden;
+  }
+  .verdict.long  { background: linear-gradient(135deg, rgba(0,217,126,0.14), rgba(0,217,126,0.02)); color: var(--green); border: 1px solid rgba(0,217,126,0.35); }
+  .verdict.short { background: linear-gradient(135deg, rgba(255,59,92,0.14), rgba(255,59,92,0.02)); color: var(--red);   border: 1px solid rgba(255,59,92,0.35); }
+  .verdict.flat  { background: linear-gradient(135deg, rgba(122,122,138,0.14), rgba(122,122,138,0.02)); color: var(--dim); border: 1px solid var(--border2); }
+
+  /* live dot inside verdict */
+  .verdict .live { position: absolute; top: 12px; right: 14px; font-size: 10px; color: var(--dim); display: flex; align-items: center; gap: 6px; }
+
+  /* ticker row */
+  .ticker {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    gap: 12px;
+  }
+
+  /* chart panel */
+  .chart-panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px;
+  }
+
+  /* pill */
+  .pill {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 3px 9px;
+    border-radius: 999px;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+  }
+  .pill.green  { background: rgba(0,217,126,0.15); color: var(--green); }
+  .pill.red    { background: rgba(255,59,92,0.15); color: var(--red); }
+  .pill.yellow { background: rgba(251,191,36,0.15); color: var(--yellow); }
+  .pill.blue   { background: rgba(59,130,246,0.15); color: #93c5fd; }
+  .pill.gray   { background: rgba(122,122,138,0.15); color: var(--dim); }
+
+  /* header */
+  .top-header {
+    border-bottom: 1px solid var(--border);
+    background: rgba(8,8,12,0.85);
+    backdrop-filter: blur(12px);
+    position: sticky; top: 0; z-index: 50;
+  }
+
+  /* logo mark */
+  .logo-mark {
+    width: 28px; height: 28px; border-radius: 8px;
+    background: linear-gradient(135deg, var(--blue), var(--purple));
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 900; font-size: 14px; color: white;
+    box-shadow: 0 0 20px rgba(59,130,246,0.4);
+  }
+
+  /* progress bar */
+  .conf-bar {
+    height: 3px; border-radius: 2px; background: var(--border);
+    overflow: hidden; margin-top: 8px;
+  }
+  .conf-bar > div {
+    height: 100%; transition: width 0.5s;
+    background: linear-gradient(90deg, var(--yellow), var(--green));
+  }
+
+  /* fade in */
+  .fade { animation: slide-in 0.3s; }
+
+  /* scroll area */
+  .scroll-y { overflow-y: auto; }
+
+  /* em-dash value */
+  .dash { color: var(--dim2); }
+</style>
+</head>
+<body>
+
+<div id="app">
+  <div class="flex items-center justify-center h-screen text-[--dim]">
+    <div class="text-center">
+      <div class="text-4xl mb-3">◈</div>
+      <div class="text-sm">Connecting to Trade Desk…</div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ================================================================
+//  STATE
+// ================================================================
+var API = "";
+var today = new Date().toISOString().slice(0, 10);
+var state = {
+  prices: {},
+  setups: [],
+  selected: 0,
+  candles: [],
+  loading: true,
+  error: null,
+  lastTick: {},           // price-flash tracking
+  scanning: false,
+  lastUpdate: null
+};
+
+// ================================================================
+//  HELPERS
+// ================================================================
+function money(v, d) {
+  if (v == null || isNaN(v)) return '<span class="dash">—</span>';
+  d = d == null ? 2 : d;
+  return "$" + Number(v).toLocaleString("en-US",
+    { minimumFractionDigits: d, maximumFractionDigits: d });
+}
+function pct(v, d) {
+  if (v == null || isNaN(v)) return '<span class="dash">—</span>';
+  d = d == null ? 2 : d;
+  return (v >= 0 ? "+" : "") + Number(v).toFixed(d) + "%";
+}
+function pctNum(v, d) {
+  if (v == null || isNaN(v)) return "—";
+  d = d == null ? 2 : d;
+  return (v >= 0 ? "+" : "") + Number(v).toFixed(d) + "%";
+}
+function t(ts) {
+  if (!ts) return "—";
+  return new Date(ts).toISOString().slice(11, 16) + " UTC";
+}
+function tFull(ts) {
+  if (!ts) return "—";
+  var d = new Date(ts);
+  return d.toISOString().slice(0, 16).replace("T", " ");
+}
+
+// ================================================================
+//  API
+// ================================================================
+function fetchPrices() {
+  return fetch(API + "/api/prices")
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      // detect ticks
+      Object.keys(d).forEach(function(sym) {
+        var old = state.prices[sym];
+        var now = d[sym];
+        if (old && old.price !== now.price) {
+          state.lastTick[sym] = now.price > old.price ? "up" : "down";
+          setTimeout(function() { delete state.lastTick[sym]; }, 700);
+        }
+      });
+      state.prices = d;
+      state.error = null;
+      state.lastUpdate = new Date();
+    })
+    .catch(function() { state.error = "API offline"; });
+}
+
+function fetchSetups() {
+  return fetch(API + "/api/setups?date=" + today)
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      state.setups = d.setups || [];
+      state.loading = false;
+    })
+    .catch(function() {
+      state.setups = []; state.loading = false;
+    });
+}
+
+function fetchCandles(symbol) {
+  return fetch(API + "/api/candles?symbol=" + symbol + "&limit=200")
+    .then(function(r) { return r.json(); })
+    .then(function(d) { state.candles = d.candles || []; })
+    .catch(function() { state.candles = []; });
+}
+
+function runScan() {
+  if (state.scanning) return;
+  state.scanning = true;
+  render();
+  fetch(API + "/api/scan", { method: "POST" })
+    .then(function() { return fetchSetups(); })
+    .then(function() {
+      var s = state.setups[state.selected];
+      if (s) return fetchCandles(s.symbol);
+    })
+    .then(function() { state.scanning = false; render(); })
+    .catch(function() { state.scanning = false; render(); });
+}
+
+// ================================================================
+//  CHART
+// ================================================================
+var chart = null;
+function drawChart(setup) {
+  var canvas = document.getElementById("chart");
+  if (!canvas || state.candles.length === 0) return;
+
+  if (chart) { chart.destroy(); chart = null; }
+
+  var labels = state.candles.map(function(c) { return c.date; });
+  var closes = state.candles.map(function(c) { return c.close; });
+  var entry = setup.entry, stop = setup.stop, target = setup.target;
+
+  // range for y axis
+  var vals = state.candles.map(function(c) { return c.close; });
+  var ymin = Math.min.apply(null, vals.concat([stop, target]));
+  var ymax = Math.max.apply(null, vals.concat([stop, target]));
+  var pad  = (ymax - ymin) * 0.08;
+  ymin -= pad; ymax += pad;
+
+  // gradient under the line
+  var ctx = canvas.getContext("2d");
+  var grad = ctx.createLinearGradient(0, 0, 0, 300);
+  grad.addColorStop(0, "rgba(59,130,246,0.28)");
+  grad.addColorStop(1, "rgba(59,130,246,0)");
+
+  var isLong = setup.direction === "LONG";
+  var lineColor = isLong ? "#00d97e" : "#ff3b5c";
+  var fillTop   = isLong ? "rgba(0,217,126,0.28)" : "rgba(255,59,92,0.28)";
+  var fillBot   = isLong ? "rgba(0,217,126,0)"    : "rgba(255,59,92,0)";
+
+  var grad2 = ctx.createLinearGradient(0, 0, 0, 300);
+  grad2.addColorStop(0, fillTop);
+  grad2.addColorStop(1, fillBot);
+
+  chart = new Chart(ctx, {
+    type: "line",
+    data: {
+      labels: labels,
+      datasets: [{
+        label: "close",
+        data: closes,
+        borderColor: lineColor,
+        backgroundColor: grad2,
+        borderWidth: 2,
+        pointRadius: 0,
+        pointHoverRadius: 5,
+        pointHoverBackgroundColor: "#fff",
+        pointHoverBorderColor: lineColor,
+        pointHoverBorderWidth: 2,
+        tension: 0.15,
+        fill: true
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: { duration: 400, easing: "easeOutQuart" },
+      interaction: { intersect: false, mode: "index" },
+      layout: { padding: { top: 12, right: 60, bottom: 4, left: 4 } },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: "rgba(14,14,20,0.96)",
+          borderColor: "var(--border2)",
+          borderWidth: 1,
+          titleColor: "#f0f0f5",
+          bodyColor: "#f0f0f5",
+          padding: 10,
+          titleFont: { family: "JetBrains Mono", size: 11 },
+          bodyFont:  { family: "JetBrains Mono", size: 12, weight: "600" },
+          callbacks: {
+            label: function(c) { return "  " + money(c.parsed.y); }
+          }
+        }
+      },
+      scales: {
+        x: {
+          ticks: { color: "#5a5a68", maxTicksLimit: 6, font: { size: 10, family: "JetBrains Mono" } },
+          grid:  { color: "rgba(35,35,46,0.6)", drawTicks: false }
+        },
+        y: {
+          min: ymin, max: ymax, position: "right",
+          ticks: { color: "#5a5a68", font: { size: 10, family: "JetBrains Mono" }, callback: function(v) { return "$" + v.toFixed(0); } },
+          grid:  { color: "rgba(35,35,46,0.6)", drawTicks: false }
+        }
+      }
+    },
+    plugins: [{
+      id: "hlines",
+      beforeDatasetsDraw: function(c) {
+        var area = c.chartArea;
+        var ys = c.scales.y;
+        var cc = c.ctx;
+        var lines = [
+          ["#3b82f6", entry,  "ENTRY"],
+          ["#ff3b5c", stop,   "STOP"],
+          ["#00d97e", target, "TARGET"]
+        ];
+        cc.save();
+        cc.font = "700 9px JetBrains Mono";
+        cc.textBaseline = "middle";
+        lines.forEach(function(pair) {
+          var col = pair[0], val = pair[1], label = pair[2];
+          var y = ys.getPixelForValue(val);
+          if (y < area.top || y > area.bottom) return;
+
+          // dashed line
+          cc.strokeStyle = col;
+          cc.setLineDash([5, 4]);
+          cc.lineWidth = 1.4;
+          cc.beginPath();
+          cc.moveTo(area.left, y);
+          cc.lineTo(area.right, y);
+          cc.stroke();
+
+          // label chip on right side
+          cc.setLineDash([]);
+          var labelText = label + " " + "$" + Number(val).toFixed(2);
+          var w = cc.measureText(labelText).width + 12;
+          cc.fillStyle = col;
+          cc.beginPath();
+          cc.roundRect(area.right + 4, y - 8, w, 16, 4);
+          cc.fill();
+          cc.fillStyle = "#000";
+          cc.textAlign = "center";
+          cc.fillText(labelText, area.right + 4 + w / 2, y);
+        });
+        cc.restore();
+      }
+    }]
+  });
+}
+
+// ================================================================
+//  RENDER HELPERS
+// ================================================================
+function priceCard(sym, d) {
+  var label = sym.replace("USDT", "");
+  if (!d) {
+    return '<div class="card p-4 skeleton" style="height:104px;">'
+      + '<div class="h-3 w-12 rounded bg-[#23232e] mb-3"></div>'
+      + '<div class="h-7 w-24 rounded bg-[#23232e] mb-2"></div>'
+      + '<div class="h-3 w-16 rounded bg-[#23232e]"></div>'
+      + '</div>';
+  }
+  var up = d.change >= 0;
+  var color  = up ? "text-[--green]" : "text-[--red]";
+  var arrow  = up ? "▲" : "▼";
+  var tickCls = state.lastTick[sym] === "up" ? "tick-up" :
+                state.lastTick[sym] === "down" ? "tick-down" : "";
+  return '<div class="card p-4 ' + tickCls + ' transition-colors">'
+    + '<div class="flex justify-between items-center mb-2">'
+    + '<span class="text-[11px] font-semibold tracking-wider text-[--dim] uppercase">' + label + '</span>'
+    + '<span class="text-[10px] ' + color + ' mono font-semibold">' + arrow + ' ' + pctNum(d.change) + '</span>'
+    + '</div>'
+    + '<div class="mono font-bold text-[22px] leading-none">' + money(d.price) + '</div>'
+    + '</div>';
+}
+
+function metric(label, value, color) {
+  return '<div class="metric">'
+    + '<span class="metric-label">' + label + '</span>'
+    + '<span class="metric-value ' + (color || '') + '">' + value + '</span>'
+    + '</div>';
+}
+
+function setupCard(s, i) {
+  var isLong  = s.direction === "LONG";
+  var active  = i === state.selected;
+  var cls = "setup-card " + (isLong ? "long" : "short") + (active ? " active" : "");
+  var conf = Number(s.confidence);
+  var confColor = conf >= 0.6 ? "text-[--green]" : conf >= 0.4 ? "text-[--yellow]" : "text-[--dim]";
+  return '<div class="' + cls + ' mb-2" onclick="selectSetup(' + i + ')">'
+    + '<div class="flex justify-between items-center mb-1">'
+    + '<div class="flex items-center gap-2">'
+    + '<span class="' + (isLong ? "text-[--green]" : "text-[--red]") + ' text-sm font-bold">'
+    + (isLong ? "▲" : "▼") + '</span>'
+    + '<span class="font-bold text-[13px]">' + s.symbol.replace("USDT","") + '</span>'
+    + '<span class="pill ' + (isLong ? "green" : "red") + '">' + s.direction + '</span>'
+    + '</div>'
+    + '<span class="mono text-[11px] font-semibold ' + confColor + '">' + conf.toFixed(2) + '</span>'
+    + '</div>'
+    + '<div class="flex justify-between items-center text-[10px] text-[--dim]">'
+    + '<span class="mono">' + s.strategy + '</span>'
+    + '<span class="mono">R:R ' + Number(s.rr).toFixed(2) + '</span>'
+    + '</div>'
+    + '</div>';
+}
+
+// ================================================================
+//  MAIN RENDER
+// ================================================================
+function render() {
+  var p = state.prices;
+
+  // ---- header prices (mini)
+  var headerPrices = "";
+  ["BTCUSDT", "ETHUSDT", "SOLUSDT"].forEach(function(sym) {
+    var d = p[sym];
+    if (!d) return;
+    var up = d.change >= 0;
+    headerPrices += '<div class="flex items-center gap-2">'
+      + '<span class="text-[10px] font-bold text-[--dim]">' + sym.replace("USDT","") + '</span>'
+      + '<span class="mono text-[11px] font-semibold">' + money(d.price) + '</span>'
+      + '<span class="mono text-[10px] ' + (up ? "text-[--green]" : "text-[--red]") + '">' + pctNum(d.change) + '</span>'
+      + '</div>';
+  });
+
+  // ---- setups list
+  var setupsHtml;
+  if (state.loading) {
+    setupsHtml = '<div class="text-[--dim] text-xs p-4 text-center">Loading…</div>';
+  } else if (state.setups.length === 0) {
+    setupsHtml = '<div class="card p-6 text-center">'
+      + '<div class="text-3xl mb-3 opacity-40">◌</div>'
+      + '<div class="text-xs text-[--dim] mb-3">No setups today</div>'
+      + '<button class="btn btn-scan mx-auto" onclick="runScan()">'
+      + '<span>▶</span> Run Scanner'
+      + '</button>'
+      + '</div>';
+  } else {
+    setupsHtml = state.setups.map(function(s, i) { return setupCard(s, i); }).join("");
+  }
+
+  // ---- detail
+  var setup = state.setups[state.selected];
+  var detailHtml = '';
+
+  if (!setup) {
+    detailHtml = '<div class="card flex items-center justify-center" style="min-height:400px;">'
+      + '<div class="text-center">'
+      + '<div class="text-4xl mb-3 opacity-30">◈</div>'
+      + '<div class="text-sm text-[--dim]">Select a setup from the left</div>'
+      + '</div>'
+      + '</div>';
+  } else {
+    var isLong = setup.direction === "LONG";
+    var entry = setup.entry, stop = setup.stop, target = setup.target;
+    var current = (p[setup.symbol] && p[setup.symbol].price) || setup.current_price;
+    var entryPct  = (entry - current) / current * 100;
+    var stopPct   = (stop - entry) / entry * 100;
+    var targetPct = (target - entry) / entry * 100;
+    var notional  = setup.size_units * entry;
+    var conf      = Number(setup.confidence);
+    var confPct   = Math.round(conf * 100);
+
+    var verdictCls = isLong ? "long" : "short";
+
+    detailHtml =
+      // verdict
+      '<div class="verdict ' + verdictCls + ' mb-4 ' + (isLong ? "glow-long" : "glow-short") + '">'
+      + '<div class="live"><span class="live-dot"></span>LIVE</div>'
+      + setup.direction
+      + '<div class="text-[12px] font-medium tracking-wide opacity-70 mt-2 mono">'
+      + setup.symbol + ' · ' + setup.strategy
+      + '</div>'
+      + '</div>'
+
+      // two columns of metrics
+      + '<div class="grid grid-cols-2 gap-4 mb-4">'
+
+      // levels
+      + '<div class="card p-4">'
+      + '<div class="text-[10px] font-bold tracking-widest text-[--dim] uppercase mb-2">Levels</div>'
+      + metric("current", money(current))
+      + metric("entry", money(entry), "text-[--blue]")
+      + metric("stop", money(stop), "text-[--red]")
+      + metric("target", money(target), "text-[--green]")
+      + metric("R:R", Number(setup.rr).toFixed(2) + " : 1", "text-[--yellow]")
+      + '</div>'
+
+      // plan
+      + '<div class="card p-4">'
+      + '<div class="text-[10px] font-bold tracking-widest text-[--dim] uppercase mb-2">Plan</div>'
+      + metric("size", Number(setup.size_units).toFixed(6) + " " + setup.symbol.replace("USDT",""))
+      + metric("notional", money(notional))
+      + metric("risk", money(setup.risk_usd), "text-[--yellow]")
+      + metric("window start", t(setup.window_start_ts))
+      + metric("window end", t(setup.window_end_ts))
+      + '</div>'
+
+      + '</div>'
+
+      // confidence bar
+      + '<div class="card p-4 mb-4">'
+      + '<div class="flex justify-between items-center mb-2">'
+      + '<span class="text-[10px] font-bold tracking-widest text-[--dim] uppercase">Confidence</span>'
+      + '<span class="mono font-bold text-[14px]">' + conf.toFixed(2) + '</span>'
+      + '</div>'
+      + '<div class="conf-bar"><div style="width:' + confPct + '%"></div></div>'
+      + '</div>'
+
+      // chart
+      + '<div class="chart-panel">'
+      + '<div class="flex justify-between items-center mb-3">'
+      + '<div class="text-[10px] font-bold tracking-widest text-[--dim] uppercase">1h Price Action</div>'
+      + '<div class="flex gap-2 text-[10px] mono">'
+      + '<span class="pill blue">ENTRY</span>'
+      + '<span class="pill red">STOP</span>'
+      + '<span class="pill green">TARGET</span>'
+      + '</div>'
+      + '</div>'
+      + '<div style="height:300px; position:relative;"><canvas id="chart"></canvas></div>'
+      + '</div>'
+
+      // invalidation
+      + '<div class="card p-4 mt-4">'
+      + '<div class="text-[10px] font-bold tracking-widest text-[--dim] uppercase mb-2">Invalidation</div>'
+      + '<ul class="text-[12px] space-y-1.5 mono">'
+      + '<li><span class="text-[--red] mr-2">✕</span>BTC drops &gt; 1.5% in 1h</li>'
+      + '<li><span class="text-[--red] mr-2">✕</span>price breaks ' + (isLong ? "below" : "above") + ' <span class="font-bold">' + money(stop) + '</span></li>'
+      + '<li><span class="text-[--red] mr-2">✕</span>window expires at ' + t(setup.window_end_ts) + '</li>'
+      + '</ul>'
+      + '</div>';
+  }
+
+  // ---- status bar
+  var statusText = state.error
+    ? '<span class="text-[--red]">⚠ ' + state.error + '</span>'
+    : state.lastUpdate
+      ? '<span class="text-[--dim]">updated ' + state.lastUpdate.toISOString().slice(11,19) + ' UTC</span>'
+      : '';
+
+  // ---- assemble
+  document.getElementById("app").innerHTML =
+    // header
+    '<header class="top-header">'
+    + '<div class="max-w-[1600px] mx-auto px-6 py-3 flex items-center justify-between">'
+
+    + '<div class="flex items-center gap-4">'
+    + '<div class="logo-mark">◈</div>'
+    + '<div>'
+    + '<div class="font-black text-[15px] tracking-wider">TRADE DESK</div>'
+    + '<div class="text-[10px] text-[--dim] mono">' + today + ' UTC</div>'
+    + '</div>'
+    + '<div class="h-8 w-px bg-[--border] mx-2"></div>'
+    + '<div class="flex items-center gap-5 mono">' + headerPrices + '</div>'
+    + '</div>'
+
+    + '<div class="flex items-center gap-3">'
+    + '<div class="flex items-center gap-2 text-[10px]"><span class="live-dot"></span><span class="text-[--dim] mono">LIVE</span></div>'
+    + statusText
+    + '<button class="btn" onclick="refreshAll()">⟳ Refresh</button>'
+    + '<button class="btn btn-scan" onclick="runScan()" id="scan-btn">'
+    + (state.scanning ? "◌ Scanning…" : "▶ Scan")
+    + '</button>'
+    + '</div>'
+
+    + '</div>'
+    + '</header>'
+
+    // main
+    + '<div class="max-w-[1600px] mx-auto px-6 py-6">'
+
+    // price cards
+    + '<div class="ticker mb-6">'
+    + priceCard("BTCUSDT", p.BTCUSDT)
+    + priceCard("ETHUSDT", p.ETHUSDT)
+    + priceCard("SOLUSDT", p.SOLUSDT)
+    + priceCard("BNBUSDT", p.BNBUSDT)
+    + '</div>'
+
+    // main grid
+    + '<div class="grid grid-cols-1 lg:grid-cols-[340px_1fr] gap-6">'
+
+    // sidebar
+    + '<aside>'
+    + '<div class="flex justify-between items-center mb-3">'
+    + '<div class="text-[10px] font-bold tracking-widest text-[--dim] uppercase">Today\'s Setups</div>'
+    + '<div class="pill gray">' + state.setups.length + '</div>'
+    + '</div>'
+    + '<div class="scroll-y" style="max-height: calc(100vh - 260px);">'
+    + setupsHtml
+    + '</div>'
+    + '</aside>'
+
+    // detail
+    + '<main class="fade">' + detailHtml + '</main>'
+
+    + '</div>'
+
+    // footer
+    + '<footer class="mt-8 pt-4 border-t border-[--border] flex justify-between text-[10px] text-[--dim] mono">'
+    + '<div>ETH Bot · Trade Desk · v2</div>'
+    + '<div>not financial advice</div>'
+    + '</footer>'
+
+    + '</div>';
+
+  // draw chart
+  if (setup && state.candles.length > 0) {
+    setTimeout(function() { drawChart(setup); }, 50);
+  }
+}
+
+// ================================================================
+//  ACTIONS
+// ================================================================
+function selectSetup(i) {
+  state.selected = i;
+  var s = state.setups[i];
+  if (s) fetchCandles(s.symbol).then(render);
+  else render();
+}
+
+function refreshAll() {
+  Promise.all([fetchPrices(), fetchSetups()])
+    .then(function() {
+      var s = state.setups[state.selected];
+      if (s) return fetchCandles(s.symbol);
+    })
+    .then(render);
+}
+
+window.selectSetup = selectSetup;
+window.refreshAll = refreshAll;
+window.runScan = runScan;
+
+// ================================================================
+//  INIT
+// ================================================================
+Promise.all([fetchPrices(), fetchSetups()])
+  .then(function() {
+    var s = state.setups[state.selected];
+    if (s) return fetchCandles(s.symbol);
+  })
+  .then(render)
+  .catch(function() { render(); });
+
+// refresh prices every 12s
+setInterval(function() { fetchPrices().then(render); }, 12000);
+
+// refresh candles every 60s
+setInterval(function() {
+  var s = state.setups[state.selected];
+  if (s) fetchCandles(s.symbol).then(render);
+}, 60000);
+</script>
+
+</body>
+</html>

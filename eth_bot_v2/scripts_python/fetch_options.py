@@ -1,11 +1,9 @@
-"""Fetch ALL ETH/BTC options data from Deribit into options.db.
+"""Fetch ETH/BTC options data from Deribit into options.db.
 
-Fetches:
-  - book summary (chain snapshot, all instruments)
-  - ticker for each instrument (includes greeks)
-  - aggregates into option_summary
-
-Stores date column on every row.
+Usage:
+    python -m scripts_python.fetch_options
+    python -m scripts_python.fetch_options --currency ETH
+    python -m scripts_python.fetch_options --currency ETH,BTC
 """
 
 from __future__ import annotations
@@ -13,7 +11,6 @@ from __future__ import annotations
 import argparse
 import sqlite3
 import sys
-import time
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -22,11 +19,13 @@ import requests
 
 ROOT    = Path(__file__).resolve().parents[1]
 DB_PATH = ROOT / "database" / "options.db"
+
 DERIBIT = "https://www.deribit.com/api/v2"
 
 
-def req(path, params=None, timeout=20):
-    r = requests.get(f"{DERIBIT}{path}", params=params or {}, timeout=timeout)
+def req(path: str, params: dict | None = None) -> dict:
+    url = f"{DERIBIT}{path}"
+    r = requests.get(url, params=params or {}, timeout=20)
     r.raise_for_status()
     data = r.json()
     if "error" in data:
@@ -34,19 +33,20 @@ def req(path, params=None, timeout=20):
     return data.get("result", data)
 
 
-def now():
-    ts = int(datetime.now(timezone.utc).timestamp() * 1000)
-    dt = datetime.fromtimestamp(ts / 1000, tz=timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
-    return ts, dt
+def now_ms() -> int:
+    return int(datetime.now(timezone.utc).timestamp() * 1000)
 
 
-def parse_instrument(name):
+def parse_instrument(name: str):
     parts = name.split("-")
     if len(parts) != 4:
         return None
     underlying, expiry_str, strike_str, kind = parts
     try:
         expiry_dt = datetime.strptime(expiry_str, "%d%b%y").replace(tzinfo=timezone.utc)
+    except ValueError:
+        return None
+    try:
         strike = float(strike_str)
     except ValueError:
         return None
@@ -58,66 +58,65 @@ def parse_instrument(name):
     }
 
 
-def insert_chain(conn, ts, date_str, rows):
+def upsert_chain(conn, ts, rows):
     conn.executemany(
-        """INSERT OR REPLACE INTO option_chain
-           (underlying, expiry, strike, kind, ts, date,
+        """INSERT INTO option_chain
+           (underlying, expiry, strike, kind, ts,
             mark_price, bid, ask, bid_iv, ask_iv, mark_iv,
             oi, volume, underlying_px)
-           VALUES (?,?,?,?,?,?, ?,?,?,?,?,?, ?,?,?)""",
+           VALUES (?,?,?,?,?, ?,?,?,?,?,?, ?,?,?)
+           ON CONFLICT(underlying, expiry, strike, kind, ts) DO UPDATE SET
+             mark_price=excluded.mark_price, bid=excluded.bid, ask=excluded.ask,
+             bid_iv=excluded.bid_iv, ask_iv=excluded.ask_iv,
+             mark_iv=excluded.mark_iv, oi=excluded.oi,
+             volume=excluded.volume, underlying_px=excluded.underlying_px""",
         rows)
     conn.commit()
 
 
-def insert_greeks(conn, ts, date_str, rows):
+def upsert_iv(conn, ts, rows):
     conn.executemany(
-        """INSERT OR REPLACE INTO greeks
-           (underlying, expiry, strike, kind, ts, date,
-            delta, gamma, theta, vega, rho)
-           VALUES (?,?,?,?,?,?, ?,?,?,?,?)""",
+        """INSERT INTO implied_volatility
+           (underlying, expiry, strike, kind, ts, iv, iv_fit, moneyness, dte)
+           VALUES (?,?,?,?,?, ?,?,?,?)
+           ON CONFLICT(underlying, expiry, strike, kind, ts) DO UPDATE SET
+             iv=excluded.iv, iv_fit=excluded.iv_fit,
+             moneyness=excluded.moneyness, dte=excluded.dte""",
         rows)
     conn.commit()
 
 
-def insert_iv(conn, ts, date_str, rows):
-    conn.executemany(
-        """INSERT OR REPLACE INTO implied_volatility
-           (underlying, expiry, strike, kind, ts, date,
-            iv, iv_fit, moneyness, dte)
-           VALUES (?,?,?,?,?,?, ?,?,?,?)""",
-        rows)
-    conn.commit()
-
-
-def insert_summary(conn, row):
+def upsert_summary(conn, row):
     conn.execute(
-        """INSERT OR REPLACE INTO option_summary
-           (underlying, ts, date,
-            total_oi_call, total_oi_put, pcr_oi,
+        """INSERT INTO option_summary
+           (underlying, ts, total_oi_call, total_oi_put, pcr_oi,
             total_vol_call, total_vol_put, pcr_vol,
-            atm_iv, iv_25d_skew, term_structure, max_pain,
-            n_instruments, underlying_px,
-            put_oi_max_strike, call_oi_max_strike)
-           VALUES (?,?,?, ?,?,?, ?,?,?, ?,?,?,?, ?,?, ?,?)""",
+            atm_iv, iv_25d_skew, term_structure, max_pain)
+           VALUES (?,?,?,?,?, ?,?,?, ?,?,?,?)
+           ON CONFLICT(underlying, ts) DO UPDATE SET
+             total_oi_call=excluded.total_oi_call,
+             total_oi_put=excluded.total_oi_put,
+             pcr_oi=excluded.pcr_oi,
+             total_vol_call=excluded.total_vol_call,
+             total_vol_put=excluded.total_vol_put,
+             pcr_vol=excluded.pcr_vol,
+             atm_iv=excluded.atm_iv,
+             iv_25d_skew=excluded.iv_25d_skew,
+             term_structure=excluded.term_structure,
+             max_pain=excluded.max_pain""",
         row)
     conn.commit()
 
 
-def compute_summary(currency, ts, date_str, snapshot):
-    """Full aggregate - all the numbers we can derive."""
+def compute_summary(underlying, ts, snapshot):
     total_oi_call = total_oi_put = 0.0
     total_vol_call = total_vol_put = 0.0
     oi_by_strike = {}
-    put_oi_by_strike = {}
-    call_oi_by_strike = {}
-    underlying_px = None
-    n = 0
 
     for s in snapshot:
         info = parse_instrument(s.get("instrument_name", ""))
         if not info:
             continue
-        n += 1
 
         oi = float(s.get("open_interest") or 0)
         vol = float(s.get("volume") or 0)
@@ -125,34 +124,25 @@ def compute_summary(currency, ts, date_str, snapshot):
         if info["kind"] == "C":
             total_oi_call += oi
             total_vol_call += vol
-            call_oi_by_strike[info["strike"]] = call_oi_by_strike.get(info["strike"], 0) + oi
         else:
             total_oi_put += oi
             total_vol_put += vol
-            put_oi_by_strike[info["strike"]] = put_oi_by_strike.get(info["strike"], 0) + oi
 
         oi_by_strike[info["strike"]] = oi_by_strike.get(info["strike"], 0) + oi
-
-        if underlying_px is None and s.get("underlying_price"):
-            underlying_px = float(s["underlying_price"])
 
     pcr_oi  = (total_oi_put / total_oi_call) if total_oi_call else None
     pcr_vol = (total_vol_put / total_vol_call) if total_vol_call else None
     max_pain = max(oi_by_strike, key=oi_by_strike.get) if oi_by_strike else None
-    put_max = max(put_oi_by_strike, key=put_oi_by_strike.get) if put_oi_by_strike else None
-    call_max = max(call_oi_by_strike, key=call_oi_by_strike.get) if call_oi_by_strike else None
 
-    return (currency, ts, date_str,
+    return (underlying, ts,
             total_oi_call, total_oi_put, pcr_oi,
             total_vol_call, total_vol_put, pcr_vol,
-            None, None, None, max_pain,
-            n, underlying_px,
-            put_max, call_max)
+            None, None, None, max_pain)
 
 
-def fetch_currency(conn, currency, fetch_greeks=False):
-    ts, date_str = now()
-    print(f"[{currency}]  {date_str} UTC")
+def fetch_currency(conn, currency):
+    print(f"[{currency}]")
+    print(f"  calling Deribit...")
 
     try:
         snapshot = req("/public/get_book_summary_by_currency",
@@ -162,13 +152,13 @@ def fetch_currency(conn, currency, fetch_greeks=False):
         return 0
 
     if not snapshot:
-        print("  no instruments")
+        print(f"  no instruments returned")
         return 0
 
-    print(f"  {len(snapshot)} instruments in book summary")
+    print(f"  {len(snapshot)} instruments")
+    ts = now_ms()
 
     chain_rows = []
-    greeks_rows = []
     iv_rows = []
 
     for s in snapshot:
@@ -181,14 +171,13 @@ def fetch_currency(conn, currency, fetch_greeks=False):
 
         mark_iv = s.get("mark_iv")
         mark_iv = float(mark_iv) / 100.0 if mark_iv is not None else None
-        bid_iv  = s.get("bid_iv")
-        bid_iv  = float(bid_iv) / 100.0 if bid_iv is not None else None
-        ask_iv  = s.get("ask_iv")
-        ask_iv  = float(ask_iv) / 100.0 if ask_iv is not None else None
+        bid_iv = s.get("bid_iv")
+        bid_iv = float(bid_iv) / 100.0 if bid_iv is not None else None
+        ask_iv = s.get("ask_iv")
+        ask_iv = float(ask_iv) / 100.0 if ask_iv is not None else None
 
         chain_rows.append((
-            info["underlying"], info["expiry"], info["strike"], info["kind"],
-            ts, date_str,
+            info["underlying"], info["expiry"], info["strike"], info["kind"], ts,
             float(s.get("mark_price") or 0),
             float(s.get("bid_price") or 0),
             float(s.get("ask_price") or 0),
@@ -203,54 +192,22 @@ def fetch_currency(conn, currency, fetch_greeks=False):
 
         if mark_iv is not None:
             iv_rows.append((
-                info["underlying"], info["expiry"], info["strike"], info["kind"],
-                ts, date_str,
+                info["underlying"], info["expiry"], info["strike"], info["kind"], ts,
                 mark_iv, None, moneyness, dte,
             ))
 
-    insert_chain(conn, ts, date_str, chain_rows)
+    upsert_chain(conn, ts, chain_rows)
     print(f"  option_chain          +{len(chain_rows)} rows")
 
     if iv_rows:
-        insert_iv(conn, ts, date_str, iv_rows)
+        upsert_iv(conn, ts, iv_rows)
         print(f"  implied_volatility    +{len(iv_rows)} rows")
 
-    # optional: fetch greeks per instrument (slow - 1 call per instrument)
-    if fetch_greeks:
-        print(f"  fetching greeks ({len(snapshot)} calls, slow)...")
-        for i, s in enumerate(snapshot):
-            info = parse_instrument(s.get("instrument_name", ""))
-            if not info:
-                continue
-            try:
-                tick = req("/public/ticker",
-                           {"instrument_name": s["instrument_name"]})
-                g = tick.get("greeks", {})
-                greeks_rows.append((
-                    info["underlying"], info["expiry"], info["strike"], info["kind"],
-                    ts, date_str,
-                    g.get("delta"), g.get("gamma"), g.get("theta"),
-                    g.get("vega"),  g.get("rho"),
-                ))
-                if (i + 1) % 50 == 0:
-                    print(f"    {i+1}/{len(snapshot)}")
-                time.sleep(0.05)
-            except Exception as e:
-                pass
-
-        if greeks_rows:
-            insert_greeks(conn, ts, date_str, greeks_rows)
-            print(f"  greeks                +{len(greeks_rows)} rows")
-
-    summary = compute_summary(currency, ts, date_str, snapshot)
-    insert_summary(conn, summary)
+    summary = compute_summary(currency, ts, snapshot)
+    upsert_summary(conn, summary)
     print(f"  option_summary        +1 row")
-    print(f"    date          = {date_str}")
-    print(f"    pcr_oi        = {summary[5]}")
-    print(f"    max_pain      = {summary[12]}")
-    print(f"    put_oi_max    = {summary[15]}")
-    print(f"    call_oi_max   = {summary[16]}")
-    print(f"    underlying_px = {summary[14]}")
+    print(f"    pcr_oi   = {summary[4]}")
+    print(f"    max_pain = {summary[11]}")
 
     return len(chain_rows)
 
@@ -258,10 +215,7 @@ def fetch_currency(conn, currency, fetch_greeks=False):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--currency", type=str, default="ETH")
-    ap.add_argument("--greeks", action="store_true",
-                    help="also fetch greeks per instrument (slow)")
     args = ap.parse_args()
-
     currencies = [c.strip().upper() for c in args.currency.split(",") if c.strip()]
 
     if not DB_PATH.exists():
@@ -273,14 +227,13 @@ def main():
     print("  FETCH OPTIONS  ->  options.db")
     print("=" * 60)
     print(f"  currencies: {', '.join(currencies)}")
-    print(f"  greeks    : {'yes' if args.greeks else 'no'}")
     print()
 
     conn = sqlite3.connect(DB_PATH)
     try:
         for cur in currencies:
             try:
-                fetch_currency(conn, cur, fetch_greeks=args.greeks)
+                fetch_currency(conn, cur)
             except Exception as e:
                 print(f"  {cur} FAIL: {type(e).__name__}: {e}")
             print()

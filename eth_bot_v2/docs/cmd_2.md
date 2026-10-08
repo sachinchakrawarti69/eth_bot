@@ -24,3 +24,13 @@ python -m scripts_python.export_options --currency ETH,BTC
 
 
 python -m scripts_python.gui.take_trade
+
+
+python -m scripts_python.fetch_futures
+
+
+python -m scripts_python.fetch_funding
+
+python -m scripts_python.fetch_oi
+python -m scripts_python.fetch_ls_ratio
+python -m scripts_python.fetch_taker
