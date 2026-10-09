@@ -1,19 +1,29 @@
-"""Git auto-commit + push. Compact single-line UI.
+"""Git auto-commit + push with notifications.
+
+Notifies on commit and push:
+  - Windows toast (native)
+  - Windows beep (fallback)
+  - Optional Discord / Slack webhook
 
 Run:
     python git_auto_push.py                 # watch
     python git_auto_push.py --no-push       # commit only
     python git_auto_push.py --once          # single pass
     python git_auto_push.py --dry-run
+    python git_auto_push.py --no-notify     # disable toasts
+    python git_auto_push.py --notify-push   # only notify on push
 """
 
 from __future__ import annotations
 
 import argparse
+import json
+import os
 import subprocess
 import sys
 import threading
 import time
+import urllib.request
 from datetime import datetime
 from pathlib import Path
 
@@ -26,7 +36,43 @@ except ImportError:
 
 REPO_ROOT        = Path(__file__).resolve().parent
 DEFAULT_INTERVAL = 30
+CONFIG_FILE      = REPO_ROOT / ".git_auto_push.json"
 
+
+# ================================================================
+#  CONFIG
+# ================================================================
+
+DEFAULT_CONFIG = {
+    "notify":           True,       # toast on commit
+    "notify_push":      False,      # if True, only notify on push (not commit)
+    "beep":             True,       # play a beep
+    "discord_webhook":  "",         # paste URL to enable Discord alerts
+    "slack_webhook":    "",         # paste URL to enable Slack alerts
+    "toast_duration":   "short",    # "short" or "long"
+}
+
+
+def load_config() -> dict:
+    cfg = dict(DEFAULT_CONFIG)
+    if CONFIG_FILE.exists():
+        try:
+            cfg.update(json.loads(CONFIG_FILE.read_text(encoding="utf-8")))
+        except Exception:
+            pass
+    return cfg
+
+
+def save_default_config():
+    if not CONFIG_FILE.exists():
+        CONFIG_FILE.write_text(
+            json.dumps(DEFAULT_CONFIG, indent=2), encoding="utf-8")
+        print(f"  wrote default config: {CONFIG_FILE.name}")
+
+
+# ================================================================
+#  COLORS
+# ================================================================
 
 class C:
     R = "\033[0m"
@@ -71,6 +117,171 @@ def show_cursor():
     sys.stdout.write("\033[?25h")
     sys.stdout.flush()
 
+
+# ================================================================
+#  NOTIFICATIONS
+# ================================================================
+
+class Notifier:
+    """Sends Windows toasts, beeps, and webhooks."""
+
+    def __init__(self, config: dict):
+        self.cfg = config
+        self.have_plyer = False
+        self.have_win10toast = False
+        self.have_powershell = sys.platform == "win32"
+        self._probe()
+
+    def _probe(self):
+        try:
+            from plyer import notification  # noqa
+            self.have_plyer = True
+        except Exception:
+            pass
+        try:
+            from win10toast import ToastNotifier  # noqa
+            self.have_win10toast = True
+        except Exception:
+            pass
+
+    # ---------- Windows toast ----------
+
+    def toast(self, title: str, msg: str, duration: str = "short"):
+        """Try plyer → win10toast → PowerShell → beep."""
+        if self.have_plyer:
+            try:
+                from plyer import notification
+                notification.notify(
+                    title=title, message=msg,
+                    timeout=5 if duration == "short" else 10,
+                    app_name="Git Auto Push")
+                return True
+            except Exception:
+                pass
+
+        if self.have_win10toast:
+            try:
+                from win10toast import ToastNotifier
+                n = ToastNotifier()
+                n.show_toast(title, msg, duration=5, threaded=True)
+                return True
+            except Exception:
+                pass
+
+        if self.have_powershell:
+            try:
+                # escape for PowerShell single-quoted string
+                t = title.replace("'", "''")
+                m = msg.replace("'", "''")
+                ps = (
+                    "[reflection.assembly]::loadwithpartialname("
+                    "'System.Windows.Forms') | Out-Null; "
+                    "[reflection.assembly]::loadwithpartialname("
+                    "'System.Drawing') | Out-Null; "
+                    "$notify = New-Object System.Windows.Forms.NotifyIcon; "
+                    "$notify.Icon = [System.Drawing.SystemIcons]::Information; "
+                    "$notify.Visible = $true; "
+                    f"$notify.ShowBalloonTip(5000, '{t}', '{m}', "
+                    "[System.Windows.Forms.ToolTipIcon]::Info); "
+                    "Start-Sleep -Milliseconds 300; "
+                    "$notify.Dispose()"
+                )
+                subprocess.Popen(
+                    ["powershell", "-NoProfile", "-WindowStyle", "Hidden",
+                     "-Command", ps],
+                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                    creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
+                return True
+            except Exception:
+                pass
+        return False
+
+    def beep(self):
+        if not self.cfg.get("beep"):
+            return
+        try:
+            if sys.platform == "win32":
+                import winsound
+                winsound.MessageBeep(winsound.MB_ICONASTERISK)
+            else:
+                sys.stdout.write("\a")
+                sys.stdout.flush()
+        except Exception:
+            pass
+
+    # ---------- webhooks ----------
+
+    def discord(self, msg: str):
+        url = self.cfg.get("discord_webhook") or ""
+        if not url:
+            return False
+        try:
+            data = json.dumps({"content": msg}).encode("utf-8")
+            req = urllib.request.Request(
+                url, data=data,
+                headers={"Content-Type": "application/json"},
+                method="POST")
+            urllib.request.urlopen(req, timeout=5)
+            return True
+        except Exception:
+            return False
+
+    def slack(self, msg: str):
+        url = self.cfg.get("slack_webhook") or ""
+        if not url:
+            return False
+        try:
+            data = json.dumps({"text": msg}).encode("utf-8")
+            req = urllib.request.Request(
+                url, data=data,
+                headers={"Content-Type": "application/json"},
+                method="POST")
+            urllib.request.urlopen(req, timeout=5)
+            return True
+        except Exception:
+            return False
+
+    # ---------- high-level ----------
+
+    def notify_commit(self, subject: str, files: int):
+        if not self.cfg.get("notify"):
+            return
+        if self.cfg.get("notify_push"):
+            return   # only notify on push
+        title = "Git commit"
+        msg = subject
+        self.toast(title, msg, self.cfg.get("toast_duration", "short"))
+        self.beep()
+        self.discord(f"**{title}**\n`{subject}`\n_{files} file(s)_")
+        self.slack(f"*{title}*\n`{subject}`\n_{files} file(s)_")
+
+    def notify_push(self, subject: str):
+        if not self.cfg.get("notify"):
+            return
+        title = "Git push"
+        msg = subject
+        self.toast(title, msg, self.cfg.get("toast_duration", "short"))
+        self.beep()
+        self.discord(f"**{title}**\n`{subject}`")
+        self.slack(f"*{title}*\n`{subject}`")
+
+    def notify_error(self, subject: str):
+        if not self.cfg.get("notify"):
+            return
+        title = "Git error"
+        msg = subject
+        self.toast(title, msg, "long")
+        # double beep on error
+        self.beep()
+        time.sleep(0.15)
+        self.beep()
+        self.discord(f"**{title}**\n`{subject}`")
+        self.slack(f"*{title}*\n`{subject}`")
+
+
+# ================================================================
+#  GIT
+# ================================================================
 
 def git(*a):
     r = subprocess.run(["git"] + list(a), cwd=str(REPO_ROOT),
@@ -133,6 +344,10 @@ def push():
     return r.returncode == 0, (r.stderr or r.stdout).strip()
 
 
+# ================================================================
+#  SPINNER
+# ================================================================
+
 FRAMES = "⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏"
 
 
@@ -162,14 +377,17 @@ class Spinner:
         while not self.stop:
             f = FRAMES[i % len(FRAMES)]
             clear_line()
-            out = "  " + c(f, C.CYN) + "  " + c(self.msg, C.GRY)
-            sys.stdout.write(out)
+            sys.stdout.write("  " + c(f, C.CYN) + "  " + c(self.msg, C.GRY))
             sys.stdout.flush()
             i += 1
             time.sleep(0.08)
 
 
-def do_once(do_push, dry_run, spin, state):
+# ================================================================
+#  MAIN LOGIC
+# ================================================================
+
+def do_once(do_push, dry_run, spin, state, notifier: Notifier):
     changes = status()
     if not changes:
         return
@@ -184,11 +402,10 @@ def do_once(do_push, dry_run, spin, state):
     ts = datetime.now().strftime("%H:%M:%S")
     n = len(changes)
 
-    line1 = ("  " + c(ts, C.GRY) + "  " +
-             c("changes", C.WHT, True) + "  " +
-             c(str(n), C.YEL, True) + "  " +
-             c(subject, C.MAG, True))
-    print(line1)
+    print("  " + c(ts, C.GRY) + "  " +
+          c("changes", C.WHT, True) + "  " +
+          c(str(n), C.YEL, True) + "  " +
+          c(subject, C.MAG, True))
 
     for st, p in changes[:5]:
         col = {"M": C.YEL, "A": C.GRN, "D": C.RED, "R": C.CYN, "??": C.GRN}.get(st, C.WHT)
@@ -222,6 +439,7 @@ def do_once(do_push, dry_run, spin, state):
 
     state["commits"] += 1
     print("           " + c("✓ committed", C.GRN, True))
+    notifier.notify_commit(subject, n)
 
     if not do_push:
         return
@@ -238,9 +456,11 @@ def do_once(do_push, dry_run, spin, state):
     if ok:
         state["pushes"] += 1
         print("           " + c("↑ pushed", C.CYN, True))
+        notifier.notify_push(subject)
     else:
         last = err.splitlines()[-1] if err else "unknown"
         print("           " + c("✗ push failed", C.RED, True) + "  " + c(last[:50], C.GRY))
+        notifier.notify_error("push failed: " + last[:80])
 
 
 def render_idle(branch_name, interval, remaining, state, spin_i, idle_since):
@@ -272,23 +492,22 @@ def render_idle(branch_name, interval, remaining, state, spin_i, idle_since):
     sys.stdout.flush()
 
 
-def watch(interval, do_push, dry_run):
+def watch(interval, do_push, dry_run, notifier: Notifier):
     ansi_on()
     bn = branch()
     state = {"commits": 0, "pushes": 0}
     spin = Spinner()
 
     print()
-    title = c("git auto push", C.B + C.WHT)
-    print("  " + title + "  " + c("repo", C.GRY) + " " + str(REPO_ROOT))
-    line = (
-        "  " + c("branch", C.GRY) + " " + c(bn, C.YEL, True) + "   " +
-        c("interval", C.GRY) + " " + str(interval) + "s   " +
-        c("push", C.GRY) + " " + ("on" if do_push else "off") + "   " +
-        c("messages", C.GRY) + " " +
-        ("commit_messages.py" if HAVE_CM else "fallback")
-    )
-    print(line)
+    print("  " + c("git auto push", C.B + C.WHT) + "  " +
+          c("repo", C.GRY) + " " + str(REPO_ROOT))
+    print("  " + c("branch", C.GRY) + " " + c(bn, C.YEL, True) + "   " +
+          c("interval", C.GRY) + " " + str(interval) + "s   " +
+          c("push", C.GRY) + " " + ("on" if do_push else "off") + "   " +
+          c("messages", C.GRY) + " " +
+          ("commit_messages.py" if HAVE_CM else "fallback") + "   " +
+          c("notify", C.GRY) + " " +
+          ("on" if notifier.cfg.get("notify") else "off"))
     print()
 
     hide_cursor()
@@ -311,7 +530,7 @@ def watch(interval, do_push, dry_run):
                             break
 
                 clear_line()
-                do_once(do_push, dry_run, spin, state)
+                do_once(do_push, dry_run, spin, state, notifier)
                 idle_since = time.time()
                 time.sleep(1)
 
@@ -319,7 +538,9 @@ def watch(interval, do_push, dry_run):
                 raise
             except Exception as e:
                 clear_line()
-                print("  " + c("error", C.RED, True) + " " + type(e).__name__ + ": " + str(e))
+                print("  " + c("error", C.RED, True) + " " +
+                      type(e).__name__ + ": " + str(e))
+                notifier.notify_error(type(e).__name__ + ": " + str(e)[:80])
                 time.sleep(interval)
 
     except KeyboardInterrupt:
@@ -336,23 +557,45 @@ def watch(interval, do_push, dry_run):
         print()
 
 
+# ================================================================
+#  CLI
+# ================================================================
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--once", action="store_true")
     ap.add_argument("--no-push", action="store_true")
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--interval", type=int, default=DEFAULT_INTERVAL)
+    ap.add_argument("--no-notify", action="store_true",
+                    help="disable all notifications")
+    ap.add_argument("--notify-push", action="store_true",
+                    help="notify only on push, not on commit")
+    ap.add_argument("--init-config", action="store_true",
+                    help="write a default .git_auto_push.json")
     args = ap.parse_args()
 
     ansi_on()
 
+    if args.init_config:
+        save_default_config()
+        return 0
+
+    cfg = load_config()
+    if args.no_notify:
+        cfg["notify"] = False
+    if args.notify_push:
+        cfg["notify_push"] = True
+
+    notifier = Notifier(cfg)
+
     if args.once or args.dry_run:
         spin = Spinner()
         state = {"commits": 0, "pushes": 0}
-        do_once(not args.no_push, args.dry_run, spin, state)
+        do_once(not args.no_push, args.dry_run, spin, state, notifier)
         return 0
 
-    watch(args.interval, not args.no_push, False)
+    watch(args.interval, not args.no_push, False, notifier)
     return 0
 
 
