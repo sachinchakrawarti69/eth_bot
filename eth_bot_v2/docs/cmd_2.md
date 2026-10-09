@@ -34,3 +34,16 @@ python -m scripts_python.fetch_funding
 python -m scripts_python.fetch_oi
 python -m scripts_python.fetch_ls_ratio
 python -m scripts_python.fetch_taker
+
+
+
+python -m ml.predict --symbol ETHUSDT
+
+
+python -m ml.predict --symbol BTCUSDT
+
+
+
+python -m scripts_python.update_multi
+python -m scripts_python.build_features
+python -m ml.predict --symbol ETHUSDT

@@ -1,0 +1,819 @@
+[
+  {
+    "strategy": "rsi_oversold_25",
+    "symbol": "BTCUSDT",
+    "desc": "Buy when 1d RSI < 25, hold 14 days",
+    "n": 120,
+    "hit_rate": 0.5,
+    "avg_win": 0.09103775585792707,
+    "avg_loss": -0.06736270042880092,
+    "expectancy": 0.011837527714563076,
+    "total_return": 1.031258825361415,
+    "max_dd": -0.7910815445273586,
+    "sharpe": 0.47276756567285055,
+    "profit_factor": 1.351456448129622,
+    "pos_years": 4,
+    "total_years": 6,
+    "verdict": "edge",
+    "by_year": [
+      {
+        "year": 2021,
+        "n": 10,
+        "hit": 0.5,
+        "expectancy": 0.027513823646303504,
+        "total_return": 0.2274562279362491
+      },
+      {
+        "year": 2022,
+        "n": 37,
+        "hit": 0.5405405405405406,
+        "expectancy": -0.00240695012226207,
+        "total_return": -0.187935857452037
+      },
+      {
+        "year": 2023,
+        "n": 20,
+        "hit": 0.45,
+        "expectancy": 0.08505381738634366,
+        "total_return": 3.2905185110529134
+      },
+      {
+        "year": 2024,
+        "n": 18,
+        "hit": 0.5555555555555556,
+        "expectancy": 0.01809900376977141,
+        "total_return": 0.2578869418929217
+      },
+      {
+        "year": 2025,
+        "n": 11,
+        "hit": 0.6363636363636364,
+        "expectancy": 0.03649456123695759,
+        "total_return": 0.45171660567242755
+      },
+      {
+        "year": 2026,
+        "n": 24,
+        "hit": 0.375,
+        "expectancy": -0.04974484772421092,
+        "total_return": -0.7399027958719374
+      }
+    ]
+  },
+  {
+    "strategy": "rsi_oversold_30",
+    "symbol": "BTCUSDT",
+    "desc": "Buy when 1d RSI < 30, hold 14 days",
+    "n": 223,
+    "hit_rate": 0.5022421524663677,
+    "avg_win": 0.08164011008915824,
+    "avg_loss": -0.06384901215495233,
+    "expectancy": 0.009221757761372261,
+    "total_return": 1.6869175028062555,
+    "max_dd": -0.8575145065719205,
+    "sharpe": 0.5612933970852924,
+    "profit_factor": 1.290162585077029,
+    "pos_years": 3,
+    "total_years": 6,
+    "verdict": "edge",
+    "by_year": [
+      {
+        "year": 2021,
+        "n": 25,
+        "hit": 0.44,
+        "expectancy": -0.0019313628468290434,
+        "total_return": -0.17750079319176038
+      },
+      {
+        "year": 2022,
+        "n": 73,
+        "hit": 0.5205479452054794,
+        "expectancy": 0.0027465450824952845,
+        "total_return": -0.052440478178700234
+      },
+      {
+        "year": 2023,
+        "n": 30,
+        "hit": 0.5,
+        "expectancy": 0.07109725235530143,
+        "total_return": 5.345219560824445
+      },
+      {
+        "year": 2024,
+        "n": 30,
+        "hit": 0.5666666666666667,
+        "expectancy": 0.02411686050816581,
+        "total_return": 0.7952975653797965
+      },
+      {
+        "year": 2025,
+        "n": 29,
+        "hit": 0.6206896551724138,
+        "expectancy": 0.017283302117347868,
+        "total_return": 0.5621456012592589
+      },
+      {
+        "year": 2026,
+        "n": 36,
+        "hit": 0.3611111111111111,
+        "expectancy": -0.04037224684368114,
+        "total_return": -0.806265155772887
+      }
+    ]
+  },
+  {
+    "strategy": "rsi_overbought_70",
+    "symbol": "BTCUSDT",
+    "desc": "Short when 1d RSI > 70, hold 14 days",
+    "n": 316,
+    "hit_rate": 0.4177215189873418,
+    "avg_win": 0.056132467606030544,
+    "avg_loss": -0.0912354330019108,
+    "expectancy": -0.029676689709985934,
+    "total_return": -0.9999880091386116,
+    "max_dd": -0.9999901824689681,
+    "sharpe": -2.1328942778312716,
+    "profit_factor": 0.4413739577616623,
+    "pos_years": 1,
+    "total_years": 6,
+    "verdict": "none",
+    "by_year": [
+      {
+        "year": 2021,
+        "n": 31,
+        "hit": 0.12903225806451613,
+        "expectancy": -0.10041668655593448,
+        "total_return": -0.9657537118064926
+      },
+      {
+        "year": 2022,
+        "n": 25,
+        "hit": 0.96,
+        "expectancy": 0.11459217260073588,
+        "total_return": 13.456411191050702
+      },
+      {
+        "year": 2023,
+        "n": 82,
+        "hit": 0.32926829268292684,
+        "expectancy": -0.033196110844303704,
+        "total_return": -0.9506128312407495
+      },
+      {
+        "year": 2024,
+        "n": 89,
+        "hit": 0.39325842696629215,
+        "expectancy": -0.06135956754545609,
+        "total_return": -0.9985281381702104
+      },
+      {
+        "year": 2025,
+        "n": 56,
+        "hit": 0.4107142857142857,
+        "expectancy": -0.015902646833871593,
+        "total_return": -0.6334269341803257
+      },
+      {
+        "year": 2026,
+        "n": 33,
+        "hit": 0.5757575757575758,
+        "expectancy": -0.0016997017171114376,
+        "total_return": -0.09106116652297891
+      }
+    ]
+  },
+  {
+    "strategy": "bull_dip",
+    "symbol": "BTCUSDT",
+    "desc": "Buy when regime bull AND RSI < 40, hold 14 days",
+    "n": 31,
+    "hit_rate": 0.7419354838709677,
+    "avg_win": 0.037069982798191625,
+    "avg_loss": -0.0336226334891534,
+    "expectancy": 0.01882672698210259,
+    "total_return": 0.7330848549745079,
+    "max_dd": -0.15849946191734676,
+    "sharpe": 1.073029251982635,
+    "profit_factor": 3.1697755197903286,
+    "pos_years": 4,
+    "total_years": 5,
+    "verdict": "strong",
+    "by_year": [
+      {
+        "year": 2021,
+        "n": 1,
+        "hit": 1.0,
+        "expectancy": 0.01928417660226389,
+        "total_return": 0.01928417660226378
+      },
+      {
+        "year": 2023,
+        "n": 15,
+        "hit": 0.8,
+        "expectancy": 0.01966463663859231,
+        "total_return": 0.32120409715998877
+      },
+      {
+        "year": 2024,
+        "n": 3,
+        "hit": 0.3333333333333333,
+        "expectancy": -0.01910773622532099,
+        "total_return": -0.058261503515648516
+      },
+      {
+        "year": 2025,
+        "n": 10,
+        "hit": 0.7,
+        "expectancy": 0.011553836840775353,
+        "total_return": 0.11802180142812735
+      },
+      {
+        "year": 2026,
+        "n": 2,
+        "hit": 1.0,
+        "expectancy": 0.10557982526612053,
+        "total_return": 0.2222893753755888
+      }
+    ]
+  },
+  {
+    "strategy": "bear_rally",
+    "symbol": "BTCUSDT",
+    "desc": "Short when regime bear AND RSI > 60, hold 14 days",
+    "n": 44,
+    "hit_rate": 0.6363636363636364,
+    "avg_win": 0.06029507705435575,
+    "avg_loss": -0.04964963788009876,
+    "expectancy": 0.020315180714554106,
+    "total_return": 1.1395119310594493,
+    "max_dd": -0.4171382653811644,
+    "sharpe": 0.7693375430978473,
+    "profit_factor": 2.1252196259706673,
+    "pos_years": 4,
+    "total_years": 5,
+    "verdict": "edge",
+    "by_year": [
+      {
+        "year": 2022,
+        "n": 25,
+        "hit": 0.8,
+        "expectancy": 0.033375594680683435,
+        "total_return": 1.047926006428753
+      },
+      {
+        "year": 2023,
+        "n": 5,
+        "hit": 0.0,
+        "expectancy": -0.02640353934191684,
+        "total_return": -0.12562426806642168
+      },
+      {
+        "year": 2024,
+        "n": 2,
+        "hit": 1.0,
+        "expectancy": 0.02761821509901835,
+        "total_return": 0.055448645538720864
+      },
+      {
+        "year": 2025,
+        "n": 2,
+        "hit": 1.0,
+        "expectancy": 0.06264594613249524,
+        "total_return": 0.1291584053198338
+      },
+      {
+        "year": 2026,
+        "n": 10,
+        "hit": 0.4,
+        "expectancy": 0.0010967458669852177,
+        "total_return": 0.002560010129941448
+      }
+    ]
+  },
+  {
+    "strategy": "trend_follow",
+    "symbol": "BTCUSDT",
+    "desc": "Buy when regime bull AND MACD hist > 0, hold 30 days",
+    "n": 278,
+    "hit_rate": 0.5035971223021583,
+    "avg_win": 0.16323822869394752,
+    "avg_loss": -0.08981662033949596,
+    "expectancy": 0.03762107341835328,
+    "total_return": 622.549322287125,
+    "max_dd": -0.9691807113022958,
+    "sharpe": 1.8073589943739534,
+    "profit_factor": 1.8438012864248454,
+    "pos_years": 2,
+    "total_years": 4,
+    "verdict": "edge",
+    "by_year": [
+      {
+        "year": 2021,
+        "n": 33,
+        "hit": 0.48484848484848486,
+        "expectancy": -0.033613790505961555,
+        "total_return": -0.8924702736545389
+      },
+      {
+        "year": 2023,
+        "n": 68,
+        "hit": 0.6323529411764706,
+        "expectancy": 0.04376304942838066,
+        "total_return": 13.10231234519757
+      },
+      {
+        "year": 2024,
+        "n": 106,
+        "hit": 0.5660377358490566,
+        "expectancy": 0.10482192289418799,
+        "total_return": 6666.161520010266
+      },
+      {
+        "year": 2025,
+        "n": 71,
+        "hit": 0.29577464788732394,
+        "expectancy": -0.03548024916781518,
+        "total_return": -0.9383247434067479
+      }
+    ]
+  },
+  {
+    "strategy": "fade_extended",
+    "symbol": "BTCUSDT",
+    "desc": "Short when close > +15% from SMA50, hold 14 days",
+    "n": 250,
+    "hit_rate": 0.34,
+    "avg_win": 0.04366599031635913,
+    "avg_loss": -0.07169186412544312,
+    "expectancy": -0.032470193615230354,
+    "total_return": -0.9998929858195403,
+    "max_dd": -0.9999168329822625,
+    "sharpe": -2.899224993791688,
+    "profit_factor": 0.31376783609230435,
+    "pos_years": 1,
+    "total_years": 5,
+    "verdict": "none",
+    "by_year": [
+      {
+        "year": 2021,
+        "n": 63,
+        "hit": 0.36507936507936506,
+        "expectancy": -0.022882838431544785,
+        "total_return": -0.8097739575785661
+      },
+      {
+        "year": 2023,
+        "n": 85,
+        "hit": 0.2823529411764706,
+        "expectancy": -0.024839737734727703,
+        "total_return": -0.8971589738463823
+      },
+      {
+        "year": 2024,
+        "n": 74,
+        "hit": 0.32432432432432434,
+        "expectancy": -0.05921497996950603,
+        "total_return": -0.9932999501276791
+      },
+      {
+        "year": 2025,
+        "n": 11,
+        "hit": 0.36363636363636365,
+        "expectancy": -0.018601287086267102,
+        "total_return": -0.1975118944545916
+      },
+      {
+        "year": 2026,
+        "n": 17,
+        "hit": 0.5882352941176471,
+        "expectancy": 0.001292400030821872,
+        "total_return": 0.01739199539758607
+      }
+    ]
+  },
+  {
+    "strategy": "buy_capitulation",
+    "symbol": "BTCUSDT",
+    "desc": "Buy when vol_20 > 2x median AND RSI < 35, hold 14 days",
+    "n": 10,
+    "hit_rate": 0.4,
+    "avg_win": 0.04454019784152208,
+    "avg_loss": -0.04839717443080923,
+    "expectancy": -0.011222225521876707,
+    "total_return": -0.11888524524230615,
+    "max_dd": -0.2066181929443458,
+    "sharpe": -0.6793761580411531,
+    "profit_factor": 0.6135371656899619,
+    "pos_years": 0,
+    "total_years": 1,
+    "verdict": "none",
+    "by_year": [
+      {
+        "year": 2026,
+        "n": 10,
+        "hit": 0.4,
+        "expectancy": -0.011222225521876707,
+        "total_return": -0.11888524524230615
+      }
+    ]
+  },
+  {
+    "strategy": "rsi_oversold_25",
+    "symbol": "ETHUSDT",
+    "desc": "Buy when 1d RSI < 25, hold 14 days",
+    "n": 95,
+    "hit_rate": 0.4631578947368421,
+    "avg_win": 0.10575986242829867,
+    "avg_loss": -0.08629098028500638,
+    "expectancy": 0.002658883708524379,
+    "total_return": -0.3882326470853965,
+    "max_dd": -0.9123749208983916,
+    "sharpe": 0.08399242577639715,
+    "profit_factor": 1.0573967589422635,
+    "pos_years": 4,
+    "total_years": 6,
+    "verdict": "weak",
+    "by_year": [
+      {
+        "year": 2021,
+        "n": 1,
+        "hit": 1.0,
+        "expectancy": 0.403814028879694,
+        "total_return": 0.40381402887969386
+      },
+      {
+        "year": 2022,
+        "n": 29,
+        "hit": 0.5517241379310345,
+        "expectancy": 0.026664472838219593,
+        "total_return": 0.5928662455343043
+      },
+      {
+        "year": 2023,
+        "n": 16,
+        "hit": 0.125,
+        "expectancy": -0.004170915001841927,
+        "total_return": -0.0794340253642839
+      },
+      {
+        "year": 2024,
+        "n": 10,
+        "hit": 0.7,
+        "expectancy": 0.05233869135015819,
+        "total_return": 0.5872203395988187
+      },
+      {
+        "year": 2025,
+        "n": 12,
+        "hit": 0.75,
+        "expectancy": 0.03196532156734826,
+        "total_return": 0.4200799442637211
+      },
+      {
+        "year": 2026,
+        "n": 27,
+        "hit": 0.3333333333333333,
+        "expectancy": -0.06536021930216801,
+        "total_return": -0.8681462527582842
+      }
+    ]
+  },
+  {
+    "strategy": "rsi_oversold_30",
+    "symbol": "ETHUSDT",
+    "desc": "Buy when 1d RSI < 30, hold 14 days",
+    "n": 195,
+    "hit_rate": 0.48717948717948717,
+    "avg_win": 0.1250885341505511,
+    "avg_loss": -0.08524182219073724,
+    "expectancy": 0.017226812949890417,
+    "total_return": 4.380050672697191,
+    "max_dd": -0.980766048079245,
+    "sharpe": 0.7413826780665549,
+    "profit_factor": 1.39408220506033,
+    "pos_years": 5,
+    "total_years": 6,
+    "verdict": "edge",
+    "by_year": [
+      {
+        "year": 2021,
+        "n": 10,
+        "hit": 0.9,
+        "expectancy": 0.23090444007846062,
+        "total_return": 6.517849087804513
+      },
+      {
+        "year": 2022,
+        "n": 53,
+        "hit": 0.5094339622641509,
+        "expectancy": 0.014456773554509549,
+        "total_return": 0.3699508419526749
+      },
+      {
+        "year": 2023,
+        "n": 22,
+        "hit": 0.22727272727272727,
+        "expectancy": 0.020572986634844033,
+        "total_return": 0.46069877543484483
+      },
+      {
+        "year": 2024,
+        "n": 32,
+        "hit": 0.71875,
+        "expectancy": 0.07824650908328792,
+        "total_return": 8.661559671402733
+      },
+      {
+        "year": 2025,
+        "n": 35,
+        "hit": 0.5714285714285714,
+        "expectancy": 0.01442810413726768,
+        "total_return": 0.40305977664475656
+      },
+      {
+        "year": 2026,
+        "n": 43,
+        "hit": 0.2558139534883721,
+        "expectancy": -0.07389540733444494,
+        "total_return": -0.973618244016738
+      }
+    ]
+  },
+  {
+    "strategy": "rsi_overbought_70",
+    "symbol": "ETHUSDT",
+    "desc": "Short when 1d RSI > 70, hold 14 days",
+    "n": 317,
+    "hit_rate": 0.4353312302839117,
+    "avg_win": 0.11028172017821408,
+    "avg_loss": -0.13419801735837222,
+    "expectancy": -0.02776835243708229,
+    "total_return": -0.999998633359631,
+    "max_dd": -0.9999998715022947,
+    "sharpe": -1.2570079580046498,
+    "profit_factor": 0.633553781494374,
+    "pos_years": 1,
+    "total_years": 6,
+    "verdict": "none",
+    "by_year": [
+      {
+        "year": 2021,
+        "n": 53,
+        "hit": 0.39622641509433965,
+        "expectancy": -0.011443621196384715,
+        "total_return": -0.8228244122841752
+      },
+      {
+        "year": 2022,
+        "n": 41,
+        "hit": 0.7560975609756098,
+        "expectancy": 0.10362326971496368,
+        "total_return": 42.519621895056524
+      },
+      {
+        "year": 2023,
+        "n": 54,
+        "hit": 0.37037037037037035,
+        "expectancy": -0.03616644328852961,
+        "total_return": -0.8912128373570859
+      },
+      {
+        "year": 2024,
+        "n": 82,
+        "hit": 0.45121951219512196,
+        "expectancy": -0.03888206219490892,
+        "total_return": -0.9865918001498708
+      },
+      {
+        "year": 2025,
+        "n": 54,
+        "hit": 0.25925925925925924,
+        "expectancy": -0.1353064628032748,
+        "total_return": -0.9998723211960572
+      },
+      {
+        "year": 2026,
+        "n": 33,
+        "hit": 0.45454545454545453,
+        "expectancy": 9.867186302312328e-05,
+        "total_return": -0.04830383417342976
+      }
+    ]
+  },
+  {
+    "strategy": "bull_dip",
+    "symbol": "ETHUSDT",
+    "desc": "Buy when regime bull AND RSI < 40, hold 14 days",
+    "n": 45,
+    "hit_rate": 0.35555555555555557,
+    "avg_win": 0.05852129399844197,
+    "avg_loss": -0.0413494872811618,
+    "expectancy": -0.005839876159524901,
+    "total_return": -0.3028073482275837,
+    "max_dd": -0.5308281645717572,
+    "sharpe": -0.29130092577964406,
+    "profit_factor": 0.7808466949627394,
+    "pos_years": 2,
+    "total_years": 4,
+    "verdict": "none",
+    "by_year": [
+      {
+        "year": 2021,
+        "n": 6,
+        "hit": 0.5,
+        "expectancy": 0.008979046531588892,
+        "total_return": 0.04217437627542098
+      },
+      {
+        "year": 2023,
+        "n": 10,
+        "hit": 0.2,
+        "expectancy": -0.012565074246996844,
+        "total_return": -0.12482532974808924
+      },
+      {
+        "year": 2024,
+        "n": 23,
+        "hit": 0.30434782608695654,
+        "expectancy": -0.021875946992468635,
+        "total_return": -0.4196685040665489
+      },
+      {
+        "year": 2025,
+        "n": 6,
+        "hit": 0.6666666666666666,
+        "expectancy": 0.052021469488098854,
+        "total_return": 0.31716908549200107
+      }
+    ]
+  },
+  {
+    "strategy": "bear_rally",
+    "symbol": "ETHUSDT",
+    "desc": "Short when regime bear AND RSI > 60, hold 14 days",
+    "n": 49,
+    "hit_rate": 0.6326530612244898,
+    "avg_win": 0.10310290169340404,
+    "avg_loss": -0.19445846364690408,
+    "expectancy": -0.006205354962219342,
+    "total_return": -0.697050243192497,
+    "max_dd": -0.8783621941101722,
+    "sharpe": -0.1107222926015171,
+    "profit_factor": 0.913131293654549,
+    "pos_years": 1,
+    "total_years": 5,
+    "verdict": "none",
+    "by_year": [
+      {
+        "year": 2022,
+        "n": 20,
+        "hit": 0.75,
+        "expectancy": -0.013508826438660651,
+        "total_return": -0.5072014594382634
+      },
+      {
+        "year": 2023,
+        "n": 1,
+        "hit": 0.0,
+        "expectancy": -0.2999621087314662,
+        "total_return": -0.2999621087314662
+      },
+      {
+        "year": 2024,
+        "n": 5,
+        "hit": 1.0,
+        "expectancy": 0.1274539440511679,
+        "total_return": 0.807239223262961
+      },
+      {
+        "year": 2025,
+        "n": 14,
+        "hit": 0.6428571428571429,
+        "expectancy": 0.0005583005719299594,
+        "total_return": -0.2731669386487784
+      },
+      {
+        "year": 2026,
+        "n": 9,
+        "hit": 0.2222222222222222,
+        "expectancy": -0.04211218710076979,
+        "total_return": -0.33145702465959015
+      }
+    ]
+  },
+  {
+    "strategy": "trend_follow",
+    "symbol": "ETHUSDT",
+    "desc": "Buy when regime bull AND MACD hist > 0, hold 30 days",
+    "n": 304,
+    "hit_rate": 0.5230263157894737,
+    "avg_win": 0.18432615580275108,
+    "avg_loss": -0.12103920511471068,
+    "expectancy": 0.03867491457567228,
+    "total_return": 349.0957169574844,
+    "max_dd": -0.9987442459606062,
+    "sharpe": 1.4760949418000808,
+    "profit_factor": 1.669898309045143,
+    "pos_years": 5,
+    "total_years": 5,
+    "verdict": "strong",
+    "by_year": [
+      {
+        "year": 2021,
+        "n": 89,
+        "hit": 0.550561797752809,
+        "expectancy": 0.03210082532757896,
+        "total_return": 0.8679168045704413
+      },
+      {
+        "year": 2023,
+        "n": 81,
+        "hit": 0.5185185185185185,
+        "expectancy": 0.013621504385591895,
+        "total_return": 1.311310344051602
+      },
+      {
+        "year": 2024,
+        "n": 77,
+        "hit": 0.42857142857142855,
+        "expectancy": 0.0355458069377803,
+        "total_return": 1.73934955803437
+      },
+      {
+        "year": 2025,
+        "n": 56,
+        "hit": 0.6071428571428571,
+        "expectancy": 0.088791831055768,
+        "total_return": 26.220660501383364
+      },
+      {
+        "year": 2026,
+        "n": 1,
+        "hit": 1.0,
+        "expectancy": 0.08748904828480553,
+        "total_return": 0.08748904828480564
+      }
+    ]
+  },
+  {
+    "strategy": "fade_extended",
+    "symbol": "ETHUSDT",
+    "desc": "Short when close > +15% from SMA50, hold 14 days",
+    "n": 376,
+    "hit_rate": 0.45478723404255317,
+    "avg_win": 0.09802302348787643,
+    "avg_loss": -0.11872264763990781,
+    "expectancy": -0.02014948337700593,
+    "total_return": -0.9999967376591844,
+    "max_dd": -0.9999944746855722,
+    "sharpe": -1.0641780996587855,
+    "profit_factor": 0.6887106044804004,
+    "pos_years": 2,
+    "total_years": 6,
+    "verdict": "none",
+    "by_year": [
+      {
+        "year": 2021,
+        "n": 90,
+        "hit": 0.4444444444444444,
+        "expectancy": -0.025463215944500697,
+        "total_return": -0.9945040522386789
+      },
+      {
+        "year": 2022,
+        "n": 43,
+        "hit": 0.627906976744186,
+        "expectancy": 0.047007967860772305,
+        "total_return": 3.947720883601354
+      },
+      {
+        "year": 2023,
+        "n": 45,
+        "hit": 0.5555555555555556,
+        "expectancy": 0.008054269546396091,
+        "total_return": 0.35505540113187384
+      },
+      {
+        "year": 2024,
+        "n": 90,
+        "hit": 0.45555555555555555,
+        "expectancy": -0.03455581130877288,
+        "total_return": -0.9838598959739544
+      },
+      {
+        "year": 2025,
+        "n": 78,
+        "hit": 0.38461538461538464,
+        "expectancy": -0.04743499901713588,
+        "total_return": -0.9865360868545894
+      },
+      {
+        "year": 2026,
+        "n": 30,
+        "hit": 0.26666666666666666,
+        "expectancy": -0.02861160404080173,
+        "total_return": -0.5925757644844294
+      }
+    ]
+  }
+]
