@@ -33,10 +33,6 @@ REPO_ROOT        = Path(__file__).resolve().parent
 DEFAULT_INTERVAL = 30
 
 
-# ================================================================
-#  COLORS
-# ================================================================
-
 class C:
     R = "\033[0m"
     B = "\033[1m"
@@ -62,7 +58,8 @@ def ansi_on():
 
 
 def c(t, col, b=False):
-    return f"{C.B if b else ''}{col}{t}{C.R}"
+    bold = C.B if b else ""
+    return bold + col + t + C.R
 
 
 def clear_line():
@@ -79,10 +76,6 @@ def show_cursor():
     sys.stdout.write("\033[?25h")
     sys.stdout.flush()
 
-
-# ================================================================
-#  GIT
-# ================================================================
 
 def git(*a):
     r = subprocess.run(["git"] + list(a), cwd=str(REPO_ROOT),
@@ -112,13 +105,17 @@ def status():
     while i < len(parts):
         e = parts[i]
         if not e:
-            i += 1; continue
-        code, path = e[:2], e[3:]
+            i += 1
+            continue
+        code = e[:2]
+        path = e[3:]
         if code[0] == "R":
             np = parts[i+1] if i+1 < len(parts) else ""
-            res.append(("R", f"{path} -> {np}")); i += 2
+            res.append(("R", path + " -> " + np))
+            i += 2
         else:
-            res.append((code.strip() or "??", path)); i += 1
+            res.append((code.strip() or "??", path))
+            i += 1
     return res
 
 
@@ -127,7 +124,8 @@ def commit(msg):
                        input=msg, text=True, encoding="utf-8",
                        capture_output=True)
     if r.returncode != 0:
-        if "nothing to commit" in (r.stderr or r.stdout).lower():
+        err = (r.stderr or r.stdout).lower()
+        if "nothing to commit" in err:
             return False
         raise RuntimeError((r.stderr or r.stdout).strip())
     return True
@@ -139,10 +137,6 @@ def push():
                        text=True, encoding="utf-8", errors="replace")
     return r.returncode == 0, (r.stderr or r.stdout).strip()
 
-
-# ================================================================
-#  SPINNER
-# ================================================================
 
 FRAMES = "⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏"
 
@@ -164,7 +158,8 @@ class Spinner:
 
     def end(self):
         self.stop = True
-        if self.t: self.t.join(timeout=0.5)
+        if self.t:
+            self.t.join(timeout=0.5)
         clear_line()
 
     def _run(self):
@@ -172,59 +167,54 @@ class Spinner:
         while not self.stop:
             f = FRAMES[i % len(FRAMES)]
             clear_line()
-            sys.stdout.write(f"  {c(f, C.CYN)}  {c(self.msg, C.GRY)}")
+            out = "  " + c(f, C.CYN) + "  " + c(self.msg, C.GRY)
+            sys.stdout.write(out)
             sys.stdout.flush()
             i += 1
             time.sleep(0.08)
 
-
-# ================================================================
-#  MAIN LOOP
-# ================================================================
 
 def do_once(do_push, dry_run, spin, state):
     changes = status()
     if not changes:
         return
 
-    # message
     if HAVE_CM:
         msg = build_message(changes)
     else:
-        msg = f"update {len(changes)} files"
+        msg = "update " + str(len(changes)) + " files"
     subject = msg.splitlines()[0]
 
-    # show what changed
     clear_line()
     ts = datetime.now().strftime("%H:%M:%S")
     n = len(changes)
-    print(f"  {c(ts, C.GRY)}  "
-          f"{c('changes', C.WHT, True)}  {c(str(n), C.YEL, True)}  "
-          f"{c(subject, C.MAG, True)}")
 
-    # list files (max 5)
+    line1 = ("  " + c(ts, C.GRY) + "  " +
+             c("changes", C.WHT, True) + "  " +
+             c(str(n), C.YEL, True) + "  " +
+             c(subject, C.MAG, True))
+    print(line1)
+
     for st, p in changes[:5]:
         col = {"M": C.YEL, "A": C.GRN, "D": C.RED, "R": C.CYN, "??": C.GRN}.get(st, C.WHT)
         short = p.replace("eth_bot_v2/", "")
-        print(f"           {c(st.ljust(2), col, True)} {c(short, C.GRY)}")
+        print("           " + c(st.ljust(2), col, True) + " " + c(short, C.GRY))
     if n > 5:
-        print(f"           {c(f'... +{n-5} more', C.GRY)}")
+        print("           " + c("... +" + str(n-5) + " more", C.GRY))
 
     if dry_run:
-        print(f"           {c('dry-run — skipped', C.YEL)}")
+        print("           " + c("dry-run — skipped", C.YEL))
         return
 
-    # stage
     spin.start("staging")
     git("add", "-A")
     spin.end()
 
     staged, _ = git("diff", "--cached", "--name-only")
     if not staged:
-        print(f"           {c('nothing staged', C.GRY)}")
+        print("           " + c("nothing staged", C.GRY))
         return
 
-    # commit
     spin.start("committing")
     try:
         ok = commit(msg)
@@ -232,16 +222,16 @@ def do_once(do_push, dry_run, spin, state):
         spin.end()
 
     if not ok:
-        print(f"           {c('nothing to commit', C.GRY)}")
+        print("           " + c("nothing to commit", C.GRY))
         return
 
     state["commits"] += 1
-    print(f"           {c('✓ committed', C.GRN, True)}")
+    print("           " + c("✓ committed", C.GRN, True))
 
     if not do_push:
         return
     if not has_remote():
-        print(f"           {c('! no remote', C.YEL)}")
+        print("           " + c("! no remote", C.YEL))
         return
 
     spin.start("pushing")
@@ -252,32 +242,36 @@ def do_once(do_push, dry_run, spin, state):
 
     if ok:
         state["pushes"] += 1
-        print(f"           {c('↑ pushed', C.CYN, True)}")
+        print("           " + c("↑ pushed", C.CYN, True))
     else:
         last = err.splitlines()[-1] if err else "unknown"
-        print(f"           {c('✗ push failed', C.RED, True)}  {c(last[:50], C.GRY)}")
+        print("           " + c("✗ push failed", C.RED, True) + "  " + c(last[:50], C.GRY))
 
 
 def render_idle(branch_name, interval, remaining, state, spin_i, idle_since):
-    """One line redraw."""
     spin = FRAMES[spin_i % len(FRAMES)]
     idle = int(time.time() - idle_since)
     im, isec = divmod(idle, 60)
-    idle_str = f"{im:02d}:{isec:02d}"
+    idle_str = str(im).zfill(2) + ":" + str(isec).zfill(2)
 
-    # progress bar
     w = 20
     filled = int(w * (1 - remaining / interval)) if interval else 0
     bar = "█" * filled + "░" * (w - filled)
 
-    line = (f"  {c(spin, C.CYN)} "
-            f"{c(branch_name, C.YEL, True)}  "
-            f"{c(bar, C.BLU)}  "
-            f"{c(f'{int(remaining)}s', C.WHT)}  "
-            f"{c('idle', C.GRY)} {c(idle_str, C.GRY)}  "
-            f"{c(f'c{state[\"commits\"]}', C.MAG)} "
-            f"{c(f'p{state[\"pushes\"]}', C.CYN)}  "
-            f"{c('Ctrl+C to stop', C.GRY)}")
+    commits = state["commits"]
+    pushes = state["pushes"]
+    rem_s = str(int(remaining)) + "s"
+
+    line = (
+        "  " + c(spin, C.CYN) + " " +
+        c(branch_name, C.YEL, True) + "  " +
+        c(bar, C.BLU) + "  " +
+        c(rem_s, C.WHT) + "  " +
+        c("idle", C.GRY) + " " + c(idle_str, C.GRY) + "  " +
+        c("c" + str(commits), C.MAG) + " " +
+        c("p" + str(pushes), C.CYN) + "  " +
+        c("Ctrl+C to stop", C.GRY)
+    )
     clear_line()
     sys.stdout.write(line)
     sys.stdout.flush()
@@ -290,13 +284,16 @@ def watch(interval, do_push, dry_run):
     spin = Spinner()
 
     print()
-    print(f"  {c('git auto push', C.B + C.WHT)}  "
-          f"{c('repo', C.GRY)} {REPO_ROOT}")
-    print(f"  {c('branch', C.GRY)} {c(bn, C.YEL, True)}   "
-          f"{c('interval', C.GRY)} {interval}s   "
-          f"{c('push', C.GRY)} {'on' if do_push else 'off'}   "
-          f"{c('messages', C.GRY)} "
-          f"{'commit_messages.py' if HAVE_CM else 'fallback'}")
+    title = c("git auto push", C.B + C.WHT)
+    print("  " + title + "  " + c("repo", C.GRY) + " " + str(REPO_ROOT))
+    line = (
+        "  " + c("branch", C.GRY) + " " + c(bn, C.YEL, True) + "   " +
+        c("interval", C.GRY) + " " + str(interval) + "s   " +
+        c("push", C.GRY) + " " + ("on" if do_push else "off") + "   " +
+        c("messages", C.GRY) + " " +
+        ("commit_messages.py" if HAVE_CM else "fallback")
+    )
+    print(line)
     print()
 
     hide_cursor()
@@ -313,25 +310,21 @@ def watch(interval, do_push, dry_run):
                     spin_i += 1
                     time.sleep(0.1)
 
-                    # peek for changes every 2s
                     if time.time() - last_peek >= 2:
                         last_peek = time.time()
                         if status():
                             break
 
-                # do work
                 clear_line()
                 do_once(do_push, dry_run, spin, state)
                 idle_since = time.time()
-
-                # brief pause
                 time.sleep(1)
 
             except KeyboardInterrupt:
                 raise
             except Exception as e:
                 clear_line()
-                print(f"  {c('error', C.RED, True)} {type(e).__name__}: {e}")
+                print("  " + c("error", C.RED, True) + " " + type(e).__name__ + ": " + str(e))
                 time.sleep(interval)
 
     except KeyboardInterrupt:
@@ -340,16 +333,13 @@ def watch(interval, do_push, dry_run):
         show_cursor()
         clear_line()
         print()
-        print(f"  {c('stopped', C.YEL, True)}   "
-              f"{c('runtime', C.GRY)} {int(time.time() - idle_since)}s   "
-              f"{c('commits', C.GRY)} {c(state['commits'], C.MAG, True)}   "
-              f"{c('pushes', C.GRY)} {c(state['pushes'], C.CYN, True)}")
+        commits = state["commits"]
+        pushes = state["pushes"]
+        print("  " + c("stopped", C.YEL, True) + "   " +
+              c("commits", C.GRY) + " " + c(str(commits), C.MAG, True) + "   " +
+              c("pushes", C.GRY) + " " + c(str(pushes), C.CYN, True))
         print()
 
-
-# ================================================================
-#  CLI
-# ================================================================
 
 def main():
     ap = argparse.ArgumentParser()
