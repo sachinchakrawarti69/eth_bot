@@ -16,7 +16,7 @@ from openpyxl.formatting.rule import CellIsRule, ColorScaleRule, FormulaRule
 from openpyxl.styles import Alignment, Font, PatternFill
 from openpyxl.utils import get_column_letter
 
-from excel.common import (style_header, autosize, safe_close_excel,
+from scripts_python.excel.common import (style_header, autosize, safe_close_excel,
                           UP_FILL, DOWN_FILL, UP_TEXT, DOWN_TEXT)
 
 
