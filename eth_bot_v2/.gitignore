@@ -1,0 +1,42 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual envs
+.venv/
+venv/
+env/
+ENV/
+
+# Database WAL files
+*.db-wal
+*.db-shm
+*.db.bak
+
+# Excel lock files
+~$*.xlsx
+
+# Outputs (regenerated)
+eth_bot_v2/exports/*.xlsx
+eth_bot_v2/exports/*.csv
+eth_bot_v2/reports/**/*.json
+eth_bot_v2/reports/**/*.md
+eth_bot_v2/reports/**/*.png
+eth_bot_v2/ml/_models/*.joblib
+
+# Logs
+*.log
+logs/
+
+# Env
+.env
+.env.*
+
+# Jupyter
+.ipynb_checkpoints/
+
+# OS
+.DS_Store
+Thumbs.db
