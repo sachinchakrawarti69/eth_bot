@@ -565,7 +565,7 @@ def run_once(gui=False):
 
     if gui:
         try:
-            from scripts_python.gui.take_trade import main as gui_main
+            from scripts.gui.take_trade import main as gui_main
             gui_main()
         except Exception:
             import traceback

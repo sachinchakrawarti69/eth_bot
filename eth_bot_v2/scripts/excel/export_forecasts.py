@@ -5,7 +5,7 @@ from datetime import datetime
 from pathlib import Path
 from openpyxl import Workbook
 from openpyxl.styles import PatternFill, Font
-from scripts_python.excel.common import style_header, autosize, safe_close_excel, UP_FILL, DOWN_FILL
+from scripts.excel.common import style_header, autosize, safe_close_excel, UP_FILL, DOWN_FILL
 
 ROOT         = Path(__file__).resolve().parents[1]
 FORECAST_DIR = ROOT / "reports" / "forecasts"

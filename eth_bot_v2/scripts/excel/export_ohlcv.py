@@ -12,7 +12,7 @@ from openpyxl.formatting.rule import CellIsRule, ColorScaleRule, FormulaRule
 from openpyxl.styles import PatternFill, Font
 from openpyxl.utils import get_column_letter
 
-from scripts_python.excel.common import (style_header, autosize, safe_close_excel,
+from scripts.excel.common import (style_header, autosize, safe_close_excel,
                           UP_FILL, DOWN_FILL, UP_TEXT, DOWN_TEXT)
 
 ROOT    = Path(__file__).resolve().parents[1]

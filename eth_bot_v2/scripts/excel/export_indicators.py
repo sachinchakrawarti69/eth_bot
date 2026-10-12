@@ -4,8 +4,8 @@ from pathlib import Path
 from openpyxl import Workbook
 from openpyxl.chart import LineChart, Reference
 
-from scripts_python.excel.common import style_header, autosize
-from scripts_python.excel.export_ohlcv import load
+from scripts.excel.common import style_header, autosize
+from scripts.excel.export_ohlcv import load
 
 ROOT    = Path(__file__).resolve().parents[1]
 OUT     = ROOT / "exports" / "ETHUSDT_indicators.xlsx"
