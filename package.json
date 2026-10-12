@@ -4,7 +4,7 @@
   "description": "Multi-stack development with auto-push, achievements, and reporting",
   "main": "auto-push.js",
   "scripts": {
-    "dev": "node auto-push.js",
+    "git": "node auto-push.js",
     "start": "node auto-push.js",
     "watch": "node auto-push.js"
   },
