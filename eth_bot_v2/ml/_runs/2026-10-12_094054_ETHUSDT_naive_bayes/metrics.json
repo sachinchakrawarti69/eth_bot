@@ -1,0 +1,20 @@
+{
+  "symbol": "ETHUSDT",
+  "model": "naive_bayes",
+  "n_train": 13916,
+  "n_test": 3479,
+  "accuracy": 0.41362460477148605,
+  "auc": 0.536698278782928,
+  "features": [
+    "rsi_14",
+    "macd_hist",
+    "vol_20",
+    "dist_sma50",
+    "funding",
+    "hour"
+  ],
+  "target": "dir_24h",
+  "hyperparams": {
+    "var_smoothing": 1e-09
+  }
+}

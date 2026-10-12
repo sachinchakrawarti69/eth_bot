@@ -13,7 +13,7 @@ DB = ROOT / "database" / "market.db"
 MODELS_DIR = ROOT / "ml" / "_models"
 
 
-def explain(symbol: str, days: int = 30) -> pd.DataFrame:
+def explain(symbol, days=30):
     path = MODELS_DIR / (symbol + "_hmm.joblib")
     bundle = joblib.load(path)
     model = bundle["model"]

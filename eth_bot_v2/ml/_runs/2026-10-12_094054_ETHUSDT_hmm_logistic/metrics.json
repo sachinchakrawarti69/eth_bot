@@ -1,0 +1,24 @@
+{
+  "symbol": "ETHUSDT",
+  "model": "hmm_logistic",
+  "n_train": 13916,
+  "n_test": 3479,
+  "n_states_fit": 3,
+  "accuracy": 0.3348663409025582,
+  "auc": 0.5712436272400389,
+  "labels": {
+    "1": "bear",
+    "2": "chop",
+    "0": "bull"
+  },
+  "features": [
+    "rsi_14",
+    "macd_hist",
+    "vol_20",
+    "dist_sma50",
+    "dist_sma200",
+    "funding",
+    "hour"
+  ],
+  "target": "dir_24h"
+}

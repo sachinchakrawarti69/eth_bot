@@ -9,5 +9,5 @@ HYPERPARAMS = {
     "random_state": 42,
 }
 
-FEATURES = ["close"]         # HMM uses returns only
-TARGET   = "dir_24h"         # not used during fit, only for evaluation
+FEATURES = ["close"]
+TARGET = "dir_24h"

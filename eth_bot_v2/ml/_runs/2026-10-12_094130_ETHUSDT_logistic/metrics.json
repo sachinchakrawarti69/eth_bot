@@ -1,0 +1,25 @@
+{
+  "symbol": "ETHUSDT",
+  "model": "logistic",
+  "n_train": 13916,
+  "n_test": 3479,
+  "accuracy": 0.3753952285139408,
+  "auc": 0.5138843119872535,
+  "features": [
+    "rsi_14",
+    "macd_hist",
+    "vol_20",
+    "dist_sma50",
+    "dist_sma200",
+    "funding",
+    "hour"
+  ],
+  "target": "dir_24h",
+  "hyperparams": {
+    "C": 1.0,
+    "max_iter": 1000,
+    "class_weight": null,
+    "solver": "lbfgs",
+    "random_state": 42
+  }
+}

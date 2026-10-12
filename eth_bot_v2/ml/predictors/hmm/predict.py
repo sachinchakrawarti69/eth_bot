@@ -13,15 +13,14 @@ DB = ROOT / "database" / "market.db"
 MODELS_DIR = ROOT / "ml" / "_models"
 
 
-def load(symbol: str):
+def load(symbol):
     path = MODELS_DIR / (symbol + "_hmm.joblib")
     if not path.exists():
         raise RuntimeError("no model at " + str(path))
     return joblib.load(path)
 
 
-def current_state(symbol: str):
-    """Return today's hidden state."""
+def current_state(symbol):
     bundle = load(symbol)
     model = bundle["model"]
     labels = bundle["labels"]
@@ -38,19 +37,27 @@ def current_state(symbol: str):
     states = model.predict(df["ret"].values.reshape(-1, 1))
     state = int(states[-1])
 
+    # count consecutive days in this state
+    days = 0
+    for s in reversed(states):
+        if int(s) == state:
+            days += 1
+        else:
+            break
+
     return {
         "symbol":     symbol,
         "raw_state":  state,
         "state":      labels.get(state, "unknown"),
-        "state_days": int((states == state)[::-1].argmin()),
+        "state_days": days,
     }
 
 
-def predict(symbol: str, row: pd.Series = None) -> dict:
+def predict(symbol, row=None):
     info = current_state(symbol)
     return {
         "symbol":     symbol,
-        "prob_up":    None,          # HMM alone does not give probability
+        "prob_up":    None,
         "prob_down":  None,
         "direction":  info["state"],
         "confidence": None,
