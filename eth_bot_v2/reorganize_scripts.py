@@ -61,26 +61,26 @@ MOVES = {
 # old module path -> new module path (used inside .py files)
 
 IMPORT_MAP = {
-    "scripts_python.fetch_futures":     "scripts_python.fetchers.futures",
-    "scripts_python.fetch_funding":     "scripts_python.fetchers.funding",
-    "scripts_python.fetch_oi":          "scripts_python.fetchers.oi",
-    "scripts_python.fetch_ls_ratio":    "scripts_python.fetchers.ls_ratio",
-    "scripts_python.fetch_taker":       "scripts_python.fetchers.taker",
-    "scripts_python.fetch_options":     "scripts_python.fetchers.options",
-    "scripts_python.fetch_intraday":    "scripts_python.fetchers.intraday",
-    "scripts_python.update_multi":      "scripts_python.fetchers.multi",
-    "scripts_python.update_market":     "scripts_python.fetchers.market",
+    "scripts_python.fetchers.futures":     "scripts_python.fetchers.futures",
+    "scripts_python.fetchers.funding":     "scripts_python.fetchers.funding",
+    "scripts_python.fetchers.oi":          "scripts_python.fetchers.oi",
+    "scripts_python.fetchers.ls_ratio":    "scripts_python.fetchers.ls_ratio",
+    "scripts_python.fetchers.taker":       "scripts_python.fetchers.taker",
+    "scripts_python.fetchers.options":     "scripts_python.fetchers.options",
+    "scripts_python.fetchers.intraday":    "scripts_python.fetchers.intraday",
+    "scripts_python.fetchers.multi":      "scripts_python.fetchers.multi",
+    "scripts_python.fetchers.market":     "scripts_python.fetchers.market",
 
-    "scripts_python.build_features":    "scripts_python.builders.features",
-    "scripts_python.compute_sr":        "scripts_python.builders.sr",
-    "scripts_python.statistical_mode":  "scripts_python.builders.stats",
+    "scripts_python.builders.features":    "scripts_python.builders.features",
+    "scripts_python.builders.sr":        "scripts_python.builders.sr",
+    "scripts_python.builders.stats":  "scripts_python.builders.stats",
 
-    "scripts_python.opportunity":       "scripts_python.signals.opportunity",
-    "scripts_python.ml_plan":           "scripts_python.signals.ml_plan",
+    "scripts_python.signals.opportunity":       "scripts_python.signals.opportunity",
+    "scripts_python.signals.ml_plan":           "scripts_python.signals.ml_plan",
 
-    "scripts_python.backtest_features": "scripts_python.backtest.features",
+    "scripts_python.backtest.features": "scripts_python.backtest.features",
 
-    "scripts_python.export_options":    "scripts_python.exports.options",
+    "scripts_python.exports.options":    "scripts_python.exports.options",
 }
 
 # also plain module (no leading package)
@@ -107,29 +107,29 @@ PLAIN_IMPORT_MAP = {
 # ================================================================
 #  COMMAND STRING REWRITES
 # ================================================================
-# things like "-m scripts_python.fetch_futures" in docs / bat / scripts
+# things like "-m scripts_python.fetchers.futures" in docs / bat / scripts
 
 COMMAND_MAP = {
-    "scripts_python.fetch_futures":     "scripts_python.fetchers.futures",
-    "scripts_python.fetch_funding":     "scripts_python.fetchers.funding",
-    "scripts_python.fetch_oi":          "scripts_python.fetchers.oi",
-    "scripts_python.fetch_ls_ratio":    "scripts_python.fetchers.ls_ratio",
-    "scripts_python.fetch_taker":       "scripts_python.fetchers.taker",
-    "scripts_python.fetch_options":     "scripts_python.fetchers.options",
-    "scripts_python.fetch_intraday":    "scripts_python.fetchers.intraday",
-    "scripts_python.update_multi":      "scripts_python.fetchers.multi",
-    "scripts_python.update_market":     "scripts_python.fetchers.market",
+    "scripts_python.fetchers.futures":     "scripts_python.fetchers.futures",
+    "scripts_python.fetchers.funding":     "scripts_python.fetchers.funding",
+    "scripts_python.fetchers.oi":          "scripts_python.fetchers.oi",
+    "scripts_python.fetchers.ls_ratio":    "scripts_python.fetchers.ls_ratio",
+    "scripts_python.fetchers.taker":       "scripts_python.fetchers.taker",
+    "scripts_python.fetchers.options":     "scripts_python.fetchers.options",
+    "scripts_python.fetchers.intraday":    "scripts_python.fetchers.intraday",
+    "scripts_python.fetchers.multi":      "scripts_python.fetchers.multi",
+    "scripts_python.fetchers.market":     "scripts_python.fetchers.market",
 
-    "scripts_python.build_features":    "scripts_python.builders.features",
-    "scripts_python.compute_sr":        "scripts_python.builders.sr",
-    "scripts_python.statistical_mode":  "scripts_python.builders.stats",
+    "scripts_python.builders.features":    "scripts_python.builders.features",
+    "scripts_python.builders.sr":        "scripts_python.builders.sr",
+    "scripts_python.builders.stats":  "scripts_python.builders.stats",
 
-    "scripts_python.opportunity":       "scripts_python.signals.opportunity",
-    "scripts_python.ml_plan":           "scripts_python.signals.ml_plan",
+    "scripts_python.signals.opportunity":       "scripts_python.signals.opportunity",
+    "scripts_python.signals.ml_plan":           "scripts_python.signals.ml_plan",
 
-    "scripts_python.backtest_features": "scripts_python.backtest.features",
+    "scripts_python.backtest.features": "scripts_python.backtest.features",
 
-    "scripts_python.export_options":    "scripts_python.exports.options",
+    "scripts_python.exports.options":    "scripts_python.exports.options",
 }
 
 
@@ -180,7 +180,7 @@ def rewrite_py_imports(path):
 
     # plain module names inside from ... import ...
     for old, new in PLAIN_IMPORT_MAP.items():
-        # from scripts_python import fetch_futures
+        # from scripts_python import fetchers.futures
         txt = re.sub(
             r"(from\s+scripts_python\s+import\s+)" + re.escape(old) + r"\b",
             r"\1" + new.replace(".", "_DOT_").replace("_DOT_", "."),

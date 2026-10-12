@@ -3,7 +3,7 @@
 Binance provides 30 days of OI history at 1h granularity.
 
 Usage:
-    python -m scripts_python.fetch_oi
+    python -m scripts_python.fetchers.oi
 """
 
 from __future__ import annotations

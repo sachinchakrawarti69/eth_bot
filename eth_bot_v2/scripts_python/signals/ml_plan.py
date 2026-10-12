@@ -1,9 +1,9 @@
 """CLI: get today's ML-based trade plan for one or more symbols.
 
 Usage:
-    python -m scripts_python.ml_plan
-    python -m scripts_python.ml_plan --symbols BTCUSDT,ETHUSDT
-    python -m scripts_python.ml_plan --account 5000 --risk 0.5
+    python -m scripts_python.signals.ml_plan
+    python -m scripts_python.signals.ml_plan --symbols BTCUSDT,ETHUSDT
+    python -m scripts_python.signals.ml_plan --account 5000 --risk 0.5
 """
 
 from __future__ import annotations

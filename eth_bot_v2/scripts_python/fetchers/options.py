@@ -1,9 +1,9 @@
 """Fetch ETH/BTC options data from Deribit into options.db.
 
 Usage:
-    python -m scripts_python.fetch_options
-    python -m scripts_python.fetch_options --currency ETH
-    python -m scripts_python.fetch_options --currency ETH,BTC
+    python -m scripts_python.fetchers.options
+    python -m scripts_python.fetchers.options --currency ETH
+    python -m scripts_python.fetchers.options --currency ETH,BTC
 """
 
 from __future__ import annotations

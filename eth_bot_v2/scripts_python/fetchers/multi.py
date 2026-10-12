@@ -1,16 +1,10 @@
-"""Fetch USD-M futures ohlcv for BTCUSDT and ETHUSDT.
-
-Adds symbols BTCUSDT and ETHUSDT (same as spot names - the DB
-stores futures and spot together, distinguished by .P suffix
-in a future version).
-
-For now, futures data uses the same symbol names. If you also
-have spot, use "--market spot" to write spot instead.
+"""Fetch 1d + 1h candles for multiple symbols into market.db.
 
 Usage:
-    python -m scripts_python.fetch_futures                    # both symbols, 1h+4h+1d
-    python -m scripts_python.fetch_futures --symbols ETHUSDT
-    python -m scripts_python.fetch_futures --timeframes 1h
+    python -m scripts_python.fetchers.multi
+    python -m scripts_python.fetchers.multi --symbols BTCUSDT,ETHUSDT,SOLUSDT,BNBUSDT
+    python -m scripts_python.fetchers.multi --timeframes 1d
+    python -m scripts_python.fetchers.multi --symbols BTCUSDT --timeframes 1d,1h
 """
 
 from __future__ import annotations
@@ -22,37 +16,37 @@ import time
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
-import requests
+from database.config.api.binance import get_klines
 
 
 ROOT    = Path(__file__).resolve().parents[1]
 DB_PATH = ROOT / "database" / "market.db"
 
-FUTURES_BASE = "https://fapi.binance.com"
+DEFAULT_SYMBOLS    = ["BTCUSDT", "ETHUSDT", "SOLUSDT", "BNBUSDT"]
+DEFAULT_TIMEFRAMES = ["1d", "1h"]
 
-DEFAULT_SYMBOLS    = ["BTCUSDT", "ETHUSDT"]
-DEFAULT_TIMEFRAMES = ["1h", "4h", "1d"]
-
-BATCH_LIMIT = 1500
+BATCH_LIMIT = 1000
 
 INTERVAL_MS = {
-    "1h": 3_600_000,
-    "4h": 14_400_000,
-    "1d": 86_400_000,
+    "1m":  60_000,
+    "5m":  300_000,
+    "15m": 900_000,
+    "30m": 1_800_000,
+    "1h":  3_600_000,
+    "4h":  14_400_000,
+    "1d":  86_400_000,
 }
 
+# first-run backfill depth, per timeframe (days)
 BACKFILL_DAYS = {
-    "1h": 730,
-    "4h": 730,
-    "1d": 2190,
+    "1m":  7,
+    "5m":  30,
+    "15m": 90,
+    "30m": 180,
+    "1h":  730,
+    "4h":  730,
+    "1d":  2190,
 }
-
-
-def req(path, params=None, timeout=20):
-    url = f"{FUTURES_BASE}{path}"
-    r = requests.get(url, params=params or {}, timeout=timeout)
-    r.raise_for_status()
-    return r.json()
 
 
 def last_open_time(conn, symbol, interval):
@@ -108,12 +102,7 @@ def fetch_symbol(conn, symbol, interval, days=None):
     total = 0
     cursor = start_ms
     while True:
-        batch = req("/fapi/v1/klines", {
-            "symbol": symbol,
-            "interval": interval,
-            "startTime": cursor,
-            "limit": BATCH_LIMIT,
-        })
+        batch = get_klines(symbol, interval, start_ms=cursor, limit=BATCH_LIMIT)
         if not batch:
             break
         batch = [k for k in batch if int(k[6]) < now_ms]
@@ -133,8 +122,10 @@ def fetch_symbol(conn, symbol, interval, days=None):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--symbols", type=str, default=",".join(DEFAULT_SYMBOLS))
-    ap.add_argument("--timeframes", type=str, default=",".join(DEFAULT_TIMEFRAMES))
+    ap.add_argument("--symbols", type=str, default=",".join(DEFAULT_SYMBOLS),
+                    help="comma-separated symbols (default: BTC,ETH,SOL,BNB)")
+    ap.add_argument("--timeframes", type=str, default=",".join(DEFAULT_TIMEFRAMES),
+                    help="comma-separated timeframes (default: 1d,1h)")
     args = ap.parse_args()
 
     symbols    = [s.strip().upper() for s in args.symbols.split(",") if s.strip()]
@@ -146,7 +137,7 @@ def main():
         return 1
 
     print("=" * 60)
-    print("  FETCH FUTURES (USD-M)")
+    print("  UPDATE MULTI")
     print("=" * 60)
     print(f"  symbols    : {', '.join(symbols)}")
     print(f"  timeframes : {', '.join(timeframes)}")
@@ -156,7 +147,7 @@ def main():
     try:
         for tf in timeframes:
             if tf not in INTERVAL_MS:
-                print(f"skipping {tf}")
+                print(f"skipping unknown timeframe: {tf}")
                 continue
             print(f"[{tf}]")
             for sym in symbols:
@@ -170,8 +161,9 @@ def main():
         print("  ROWS IN ohlcv")
         print("=" * 60)
         rows = conn.execute(
-            "SELECT symbol, timeframe, COUNT(*) FROM ohlcv "
-            "GROUP BY symbol, timeframe ORDER BY symbol, timeframe").fetchall()
+            "SELECT symbol, timeframe, COUNT(*) "
+            "FROM ohlcv GROUP BY symbol, timeframe "
+            "ORDER BY symbol, timeframe").fetchall()
         for sym, tf, n in rows:
             print(f"  {sym:<10} {tf:<3} {n:>7}")
     finally:

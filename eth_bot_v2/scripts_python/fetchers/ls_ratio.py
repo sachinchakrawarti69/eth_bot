@@ -1,7 +1,7 @@
-"""Fetch taker buy/sell volume from Binance USD-M futures.
+"""Fetch long/short ratio from Binance USD-M futures.
 
 Usage:
-    python -m scripts_python.fetch_taker
+    python -m scripts_python.fetchers.ls_ratio
 """
 
 from __future__ import annotations
@@ -32,7 +32,7 @@ def req(path, params=None, timeout=20):
 def last_ts(conn, symbol):
     try:
         row = conn.execute(
-            "SELECT MAX(ts) FROM taker_volume WHERE symbol=?", (symbol,)).fetchone()
+            "SELECT MAX(ts) FROM long_short_ratio WHERE symbol=?", (symbol,)).fetchone()
         return row[0] if row and row[0] is not None else None
     except Exception:
         return None
@@ -40,20 +40,21 @@ def last_ts(conn, symbol):
 
 def count_rows(conn, symbol):
     return conn.execute(
-        "SELECT COUNT(*) FROM taker_volume WHERE symbol=?", (symbol,)).fetchone()[0]
+        "SELECT COUNT(*) FROM long_short_ratio WHERE symbol=?", (symbol,)).fetchone()[0]
 
 
 def upsert(conn, symbol, rows):
     conn.executemany(
-        """INSERT INTO taker_volume (symbol, ts, taker_buy, taker_sell, buy_ratio)
+        """INSERT INTO long_short_ratio (symbol, ts, long_pct, short_pct, ratio)
            VALUES (?,?,?,?,?)
            ON CONFLICT(symbol, ts) DO UPDATE SET
-             taker_buy=excluded.taker_buy,
-             taker_sell=excluded.taker_sell,
-             buy_ratio=excluded.buy_ratio""",
+             long_pct=excluded.long_pct,
+             short_pct=excluded.short_pct,
+             ratio=excluded.ratio""",
         [(symbol, int(r["timestamp"]),
-          float(r["buyVol"]), float(r["sellVol"]),
-          float(r["buySellRatio"])) for r in rows])
+          float(r["longAccount"]) * 100,
+          float(r["shortAccount"]) * 100,
+          float(r["longShortRatio"])) for r in rows])
     conn.commit()
 
 
@@ -74,7 +75,7 @@ def fetch_symbol(conn, symbol):
     total = 0
     cursor = start_ms
     while True:
-        batch = req("/futures/data/takerlongshortRatio", {
+        batch = req("/futures/data/globalLongShortAccountRatio", {
             "symbol": symbol,
             "period": "1h",
             "startTime": cursor,
@@ -101,7 +102,7 @@ def main():
     symbols = [s.strip().upper() for s in args.symbols.split(",") if s.strip()]
 
     print("=" * 60)
-    print("  FETCH TAKER VOLUME")
+    print("  FETCH LONG/SHORT RATIO")
     print("=" * 60)
     print(f"  symbols: {', '.join(symbols)}")
     print()

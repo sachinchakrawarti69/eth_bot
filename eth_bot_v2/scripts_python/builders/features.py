@@ -5,9 +5,9 @@ long_short_ratio, taker_volume. Computes indicators, aligns
 everything to the 1h clock, writes to `features`.
 
 Usage:
-    python -m scripts_python.build_features
-    python -m scripts_python.build_features --symbols BTCUSDT,ETHUSDT
-    python -m scripts_python.build_features --full       # drop + rebuild
+    python -m scripts_python.builders.features
+    python -m scripts_python.builders.features --symbols BTCUSDT,ETHUSDT
+    python -m scripts_python.builders.features --full       # drop + rebuild
 """
 
 from __future__ import annotations

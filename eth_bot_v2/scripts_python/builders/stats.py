@@ -4,9 +4,9 @@ For each signal, compute hit rate, expectancy, Sharpe, stability
 across 3 horizons (1h, 4h, 24h). Rank by fees-adjusted expectancy.
 
 Usage:
-    python -m scripts_python.statistical_mode
-    python -m scripts_python.statistical_mode --symbols BTCUSDT
-    python -m scripts_python.statistical_mode --min-samples 30
+    python -m scripts_python.builders.stats
+    python -m scripts_python.builders.stats --symbols BTCUSDT
+    python -m scripts_python.builders.stats --min-samples 30
 """
 
 from __future__ import annotations

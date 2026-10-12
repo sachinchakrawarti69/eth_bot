@@ -1,7 +1,8 @@
-"""Fetch long/short ratio from Binance USD-M futures.
+"""Fetch funding rate history from Binance USD-M futures.
 
 Usage:
-    python -m scripts_python.fetch_ls_ratio
+    python -m scripts_python.fetchers.funding
+    python -m scripts_python.fetchers.funding --symbols BTCUSDT,ETHUSDT
 """
 
 from __future__ import annotations
@@ -30,31 +31,22 @@ def req(path, params=None, timeout=20):
 
 
 def last_ts(conn, symbol):
-    try:
-        row = conn.execute(
-            "SELECT MAX(ts) FROM long_short_ratio WHERE symbol=?", (symbol,)).fetchone()
-        return row[0] if row and row[0] is not None else None
-    except Exception:
-        return None
+    row = conn.execute(
+        "SELECT MAX(ts) FROM funding_rate WHERE symbol=?", (symbol,)).fetchone()
+    return row[0] if row and row[0] is not None else None
 
 
 def count_rows(conn, symbol):
     return conn.execute(
-        "SELECT COUNT(*) FROM long_short_ratio WHERE symbol=?", (symbol,)).fetchone()[0]
+        "SELECT COUNT(*) FROM funding_rate WHERE symbol=?", (symbol,)).fetchone()[0]
 
 
 def upsert(conn, symbol, rows):
     conn.executemany(
-        """INSERT INTO long_short_ratio (symbol, ts, long_pct, short_pct, ratio)
-           VALUES (?,?,?,?,?)
-           ON CONFLICT(symbol, ts) DO UPDATE SET
-             long_pct=excluded.long_pct,
-             short_pct=excluded.short_pct,
-             ratio=excluded.ratio""",
-        [(symbol, int(r["timestamp"]),
-          float(r["longAccount"]) * 100,
-          float(r["shortAccount"]) * 100,
-          float(r["longShortRatio"])) for r in rows])
+        """INSERT INTO funding_rate (symbol, ts, rate)
+           VALUES (?,?,?)
+           ON CONFLICT(symbol, ts) DO UPDATE SET rate=excluded.rate""",
+        [(symbol, int(r["fundingTime"]), float(r["fundingRate"])) for r in rows])
     conn.commit()
 
 
@@ -67,7 +59,7 @@ def fetch_symbol(conn, symbol):
         origin = "resume"
     else:
         start_ms = int((datetime.now(timezone.utc)
-                        - timedelta(days=29)).timestamp() * 1000)
+                        - timedelta(days=730)).timestamp() * 1000)
         origin = "backfill"
 
     print(f"  {symbol:<10} {origin:<8}")
@@ -75,19 +67,18 @@ def fetch_symbol(conn, symbol):
     total = 0
     cursor = start_ms
     while True:
-        batch = req("/futures/data/globalLongShortAccountRatio", {
+        batch = req("/fapi/v1/fundingRate", {
             "symbol": symbol,
-            "period": "1h",
             "startTime": cursor,
-            "limit": 500,
+            "limit": 1000,
         })
         if not batch:
             break
         upsert(conn, symbol, batch)
         total += len(batch)
-        if len(batch) < 500:
+        if len(batch) < 1000:
             break
-        cursor = int(batch[-1]["timestamp"]) + 1
+        cursor = int(batch[-1]["fundingTime"]) + 1
         time.sleep(0.2)
 
     after = count_rows(conn, symbol)
@@ -99,10 +90,11 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--symbols", type=str, default=",".join(DEFAULT_SYMBOLS))
     args = ap.parse_args()
+
     symbols = [s.strip().upper() for s in args.symbols.split(",") if s.strip()]
 
     print("=" * 60)
-    print("  FETCH LONG/SHORT RATIO")
+    print("  FETCH FUNDING RATE")
     print("=" * 60)
     print(f"  symbols: {', '.join(symbols)}")
     print()
@@ -114,13 +106,12 @@ def main():
                 fetch_symbol(conn, sym)
             except Exception as e:
                 print(f"  {sym} FAIL: {type(e).__name__}: {e}")
+
         print()
         print("  totals:")
         for sym in symbols:
-            try:
-                print(f"    {sym:<10} {count_rows(conn, sym):>6}")
-            except Exception:
-                print(f"    {sym:<10} (no table)")
+            n = count_rows(conn, sym)
+            print(f"    {sym:<10} {n:>6}")
     finally:
         conn.close()
     return 0

@@ -21,8 +21,8 @@ Options analysis notebooks. All read from `database/options.db`.
 Data must be in `database/options.db`. Populate with:
 
     python database/init_options_db.py
-    python -m scripts_python.fetch_options --currency ETH
-    python -m scripts_python.fetch_options --currency ETH --greeks
+    python -m scripts_python.fetchers.options --currency ETH
+    python -m scripts_python.fetchers.options --currency ETH --greeks
 
 ## Open all
 

@@ -1,9 +1,9 @@
 """Export all options data to CSV + Excel with dates.
 
 Usage:
-    python -m scripts_python.export_options
-    python -m scripts_python.export_options --currency ETH
-    python -m scripts_python.export_options --currency ETH,BTC
+    python -m scripts_python.exports.options
+    python -m scripts_python.exports.options --currency ETH
+    python -m scripts_python.exports.options --currency ETH,BTC
 """
 
 from __future__ import annotations

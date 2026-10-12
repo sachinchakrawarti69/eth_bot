@@ -4,9 +4,9 @@ Reads ohlcv for a symbol across timeframes. Detects S/R from
 8 sources. Writes to sr_levels table.
 
 Usage:
-    python -m scripts_python.compute_sr
-    python -m scripts_python.compute_sr --symbols BTCUSDT
-    python -m scripts_python.compute_sr --timeframes 1h,4h,1d
+    python -m scripts_python.builders.sr
+    python -m scripts_python.builders.sr --symbols BTCUSDT
+    python -m scripts_python.builders.sr --timeframes 1h,4h,1d
 """
 
 from __future__ import annotations

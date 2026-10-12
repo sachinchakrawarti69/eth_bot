@@ -29,7 +29,7 @@ python database\init_options_db.py
 ### Multi-symbol OHLCV
 
 ```powershell
-python -m scripts_python.update_multi
+python -m scripts_python.fetchers.multi
 ```
 
 Adds BTCUSDT, ETHUSDT, SOLUSDT, BNBUSDT at 1d and 1h.
@@ -37,48 +37,48 @@ Adds BTCUSDT, ETHUSDT, SOLUSDT, BNBUSDT at 1d and 1h.
 Custom:
 
 ```powershell
-python -m scripts_python.update_multi --symbols BTCUSDT,ETHUSDT
-python -m scripts_python.update_multi --timeframes 1h
-python -m scripts_python.update_multi --symbols BTCUSDT --timeframes 1h,4h,1d
+python -m scripts_python.fetchers.multi --symbols BTCUSDT,ETHUSDT
+python -m scripts_python.fetchers.multi --timeframes 1h
+python -m scripts_python.fetchers.multi --symbols BTCUSDT --timeframes 1h,4h,1d
 ```
 
 ### Futures OHLCV
 
 ```powershell
-python -m scripts_python.fetch_futures
+python -m scripts_python.fetchers.futures
 ```
 
 ### Funding rate
 
 ```powershell
-python -m scripts_python.fetch_funding
-python -m scripts_python.fetch_funding --symbols ETHUSDT
+python -m scripts_python.fetchers.funding
+python -m scripts_python.fetchers.funding --symbols ETHUSDT
 ```
 
 ### Open interest
 
 ```powershell
-python -m scripts_python.fetch_oi
+python -m scripts_python.fetchers.oi
 ```
 
 ### Long/short ratio
 
 ```powershell
-python -m scripts_python.fetch_ls_ratio
+python -m scripts_python.fetchers.ls_ratio
 ```
 
 ### Taker volume
 
 ```powershell
-python -m scripts_python.fetch_taker
+python -m scripts_python.fetchers.taker
 ```
 
 ### Options (Deribit)
 
 ```powershell
-python -m scripts_python.fetch_options --currency ETH
-python -m scripts_python.fetch_options --currency ETH,BTC
-python -m scripts_python.fetch_options --currency ETH --greeks
+python -m scripts_python.fetchers.options --currency ETH
+python -m scripts_python.fetchers.options --currency ETH,BTC
+python -m scripts_python.fetchers.options --currency ETH --greeks
 ```
 
 ---
@@ -88,26 +88,26 @@ python -m scripts_python.fetch_options --currency ETH --greeks
 ### Features table
 
 ```powershell
-python -m scripts_python.build_features
+python -m scripts_python.builders.features
 ```
 
 Rebuild from scratch:
 
 ```powershell
-python -m scripts_python.build_features --full
+python -m scripts_python.builders.features --full
 ```
 
 ### Support/resistance
 
 ```powershell
-python -m scripts_python.compute_sr
+python -m scripts_python.builders.sr
 ```
 
 Custom:
 
 ```powershell
-python -m scripts_python.compute_sr --symbols ETHUSDT
-python -m scripts_python.compute_sr --timeframes 1h,4h,1d
+python -m scripts_python.builders.sr --symbols ETHUSDT
+python -m scripts_python.builders.sr --timeframes 1h,4h,1d
 ```
 
 ---
@@ -117,7 +117,7 @@ python -m scripts_python.compute_sr --timeframes 1h,4h,1d
 ### Statistical mode
 
 ```powershell
-python -m scripts_python.statistical_mode
+python -m scripts_python.builders.stats
 ```
 
 Output: ranking of 60 signals × 3 horizons.
@@ -143,14 +143,14 @@ Writes `reports/daily/YYYY-MM-DD/summary.md`.
 ## 5. Trade setups
 
 ```powershell
-python -m scripts_python.opportunity
+python -m scripts_python.signals.opportunity
 ```
 
 Custom:
 
 ```powershell
-python -m scripts_python.opportunity --account 5000 --risk 0.5
-python -m scripts_python.opportunity --symbols ETHUSDT
+python -m scripts_python.signals.opportunity --account 5000 --risk 0.5
+python -m scripts_python.signals.opportunity --symbols ETHUSDT
 ```
 
 Writes to `trade_setups` and `reports/orders/YYYY-MM-DD.json`.
@@ -398,19 +398,19 @@ git reset --hard HEAD
 cd "D:\Sachin Chakrawarti\Learn\done\eth_bot\eth_bot_v2"
 
 # 1. refresh data
-python -m scripts_python.fetch_futures
-python -m scripts_python.fetch_funding
-python -m scripts_python.fetch_oi
-python -m scripts_python.fetch_ls_ratio
-python -m scripts_python.fetch_taker
-python -m scripts_python.fetch_options --currency ETH,BTC
+python -m scripts_python.fetchers.futures
+python -m scripts_python.fetchers.funding
+python -m scripts_python.fetchers.oi
+python -m scripts_python.fetchers.ls_ratio
+python -m scripts_python.fetchers.taker
+python -m scripts_python.fetchers.options --currency ETH,BTC
 
 # 2. rebuild features + levels
-python -m scripts_python.build_features
-python -m scripts_python.compute_sr
+python -m scripts_python.builders.features
+python -m scripts_python.builders.sr
 
 # 3. generate today's setups
-python -m scripts_python.opportunity
+python -m scripts_python.signals.opportunity
 
 # 4. view in browser
 python scripts_python\web\api.py
@@ -426,7 +426,7 @@ Total time: ~3 minutes.
 
 ```powershell
 $action  = New-ScheduledTaskAction -Execute "python" `
-  -Argument "-m scripts_python.fetch_futures"
+  -Argument "-m scripts_python.fetchers.futures"
 $trigger = New-ScheduledTaskTrigger -Daily -At "00:05"
 Register-ScheduledTask -TaskName "ethbot_futures" `
   -Action $action -Trigger $trigger -Force
@@ -436,7 +436,7 @@ Register-ScheduledTask -TaskName "ethbot_futures" `
 
 ```powershell
 $action  = New-ScheduledTaskAction -Execute "python" `
-  -Argument "-m scripts_python.fetch_options --currency ETH,BTC"
+  -Argument "-m scripts_python.fetchers.options --currency ETH,BTC"
 $trigger = New-ScheduledTaskTrigger -Once -At (Get-Date) `
   -RepetitionInterval (New-TimeSpan -Hours 1)
 Register-ScheduledTask -TaskName "ethbot_options" `
@@ -497,19 +497,19 @@ Remove-Item database\options.db
 python database\init_db.py
 python database\init_options_db.py
 
-python -m scripts_python.update_multi
-python -m scripts_python.fetch_futures
-python -m scripts_python.fetch_funding
-python -m scripts_python.fetch_oi
-python -m scripts_python.fetch_ls_ratio
-python -m scripts_python.fetch_taker
-python -m scripts_python.fetch_options --currency ETH,BTC
+python -m scripts_python.fetchers.multi
+python -m scripts_python.fetchers.futures
+python -m scripts_python.fetchers.funding
+python -m scripts_python.fetchers.oi
+python -m scripts_python.fetchers.ls_ratio
+python -m scripts_python.fetchers.taker
+python -m scripts_python.fetchers.options --currency ETH,BTC
 
-python -m scripts_python.build_features
-python -m scripts_python.compute_sr
-python -m scripts_python.statistical_mode
+python -m scripts_python.builders.features
+python -m scripts_python.builders.sr
+python -m scripts_python.builders.stats
 python -m scripts_python.backtest
-python -m scripts_python.opportunity
+python -m scripts_python.signals.opportunity
 ```
 
 ---
@@ -575,15 +575,15 @@ curl http://localhost:8000/api/health
 ### Empty features table
 
 ```powershell
-python -m scripts_python.fetch_futures
-python -m scripts_python.fetch_funding
-python -m scripts_python.build_features
+python -m scripts_python.fetchers.futures
+python -m scripts_python.fetchers.funding
+python -m scripts_python.builders.features
 ```
 
 ### Empty setups
 
 ```powershell
-python -m scripts_python.opportunity
+python -m scripts_python.signals.opportunity
 ```
 
 "No setups today" = correct when market doesn't match any strategy.
@@ -612,10 +612,10 @@ Stop-Process -Name EXCEL -Force -ErrorAction SilentlyContinue
 
 ```powershell
 # daily refresh
-python -m scripts_python.fetch_futures; python -m scripts_python.fetch_funding; python -m scripts_python.build_features; python -m scripts_python.compute_sr
+python -m scripts_python.fetchers.futures; python -m scripts_python.fetchers.funding; python -m scripts_python.builders.features; python -m scripts_python.builders.sr
 
 # scan for setups
-python -m scripts_python.opportunity
+python -m scripts_python.signals.opportunity
 
 # view in browser
 python scripts_python\web\api.py     # then http://localhost:8000

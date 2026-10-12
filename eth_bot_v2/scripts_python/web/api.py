@@ -122,7 +122,7 @@ def candles():
 def scan():
     try:
         r = subprocess.run(
-            [sys.executable, "-m", "scripts_python.opportunity",
+            [sys.executable, "-m", "scripts_python.signals.opportunity",
              "--account", "1000", "--risk", "1.0"],
             capture_output=True, text=True, cwd=str(ROOT), timeout=60)
         return jsonify({
